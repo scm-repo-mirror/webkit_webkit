@@ -2562,8 +2562,6 @@ JSValue JSObject::ordinaryToPrimitive(JSGlobalObject* globalObject, PreferredPri
             return value;
     }
 
-    scope.assertNoExceptionExceptTermination();
-
     return throwTypeError(globalObject, scope, "No default value"_s);
 }
 
@@ -2796,9 +2794,9 @@ void JSObject::getOwnNonIndexPropertyNames(JSGlobalObject* globalObject, Propert
     methodTable()->getOwnSpecialPropertyNames(this, globalObject, propertyNames, mode);
     RETURN_IF_EXCEPTION(scope, void());
 
+    scope.release();
     getNonReifiedStaticPropertyNames(vm, propertyNames, mode);
     structure()->getPropertyNamesFromStructure(vm, propertyNames, mode);
-    scope.assertNoExceptionExceptTermination();
 }
 
 double JSObject::toNumber(JSGlobalObject* globalObject) const
