@@ -73,6 +73,7 @@
 #include "HitTestResult.h"
 #include "Image.h"
 #include "InlineIteratorBoxInlines.h"
+#include "InlineIteratorLogicalOrderTraversal.h"
 #include "InlineIteratorTextBoxInlines.h"
 #include "LegacyRenderSVGRoot.h"
 #include "LegacyRenderSVGShape.h"
@@ -1581,9 +1582,7 @@ AXTextRuns AccessibilityRenderObject::textRuns()
     };
 
     Vector<std::array<uint16_t, 2>> textRunDomOffsets;
-    // FIXME: Use InlineIteratorLogicalOrderTraversal instead. Otherwise we'll do the wrong thing for mixed direction content.
-    // Tracked by: https://bugs.webkit.org/show_bug.cgi?id=294632
-    auto textBox = InlineIterator::lineLeftmostTextBoxFor(*renderText);
+    auto [textBox, orderCache] = InlineIterator::firstTextBoxInLogicalOrderFor(*renderText);
     size_t currentLineIndex = textBox ? textBox->lineIndex() : 0;
 
     bool containsOnlyASCII = true;
@@ -1631,7 +1630,7 @@ AXTextRuns AccessibilityRenderObject::textRuns()
 
         // Within each iteration of this loop, we are looking at the *next* text box to compare to the current.
         // So, we need to set the textRunDomOffsets after the line index comparison, in order to assign the right DOM offsets per text box.
-        textBox.traverseNextTextBox();
+        textBox = InlineIterator::nextTextBoxInLogicalOrder(textBox, orderCache);
         textRunDomOffsets.append({ startDOMOffset, endDOMOffset });
     }
 
