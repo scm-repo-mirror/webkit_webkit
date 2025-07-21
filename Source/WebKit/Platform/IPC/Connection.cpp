@@ -1251,7 +1251,7 @@ void Connection::dispatchSyncMessage(Decoder& decoder)
         } else
             decoder.markInvalid();
     } else
-        m_client->didReceiveSyncMessage(*this, decoder, replyEncoder);
+        protectedClient()->didReceiveSyncMessage(*this, decoder, replyEncoder);
 
     // If the message was not handled, i.e. replyEncoder was not consumed, reply with cancel
     // message. We do not distinquish between a decode failure and failure to find a
@@ -1269,7 +1269,7 @@ void Connection::dispatchDidReceiveInvalidMessage(MessageName messageName, int32
     dispatchToClient([protectedThis = Ref { *this }, messageName, indexOfObjectFailingDecoding] {
         if (!protectedThis->isValid())
             return;
-        protectedThis->m_client->didReceiveInvalidMessage(protectedThis, messageName, indexOfObjectFailingDecoding);
+        protectedThis->protectedClient()->didReceiveInvalidMessage(protectedThis, messageName, indexOfObjectFailingDecoding);
     });
 }
 
@@ -1278,9 +1278,10 @@ void Connection::dispatchDidCloseAndInvalidate()
     dispatchToClient([protectedThis = Ref { *this }] {
         // If the connection has been explicitly invalidated before dispatchConnectionDidClose was called,
         // then the connection client will be nullptr here.
-        if (!protectedThis->m_client)
+        RefPtr client = protectedThis->m_client.get();
+        if (!client)
             return;
-        protectedThis->m_client->didClose(protectedThis);
+        client->didClose(protectedThis);
         protectedThis->invalidate();
     });
 }
@@ -1316,7 +1317,8 @@ void Connection::enqueueIncomingMessage(UniqueRef<Decoder> incomingMessage)
         if (isIncomingMessagesThrottlingEnabled() && m_incomingMessages.size() >= maxPendingIncomingMessagesKillingThreshold) {
             m_didRequestProcessTermination = true;
             dispatchToClientWithIncomingMessagesLock([protectedThis = Ref { *this }] {
-                if (!protectedThis->m_client)
+                RefPtr client = protectedThis->m_client.get();
+                if (!client)
                     return;
                 protectedThis->m_client->requestRemoteProcessTermination();
                 RELEASE_LOG_FAULT(IPC, "%p - Connection::enqueueIncomingMessage: Over %zu incoming messages have been queued without the main thread processing them, terminating the remote process as it seems to be misbehaving", protectedThis.ptr(), maxPendingIncomingMessagesKillingThreshold);
@@ -1349,7 +1351,8 @@ void Connection::enqueueIncomingMessage(UniqueRef<Decoder> incomingMessage)
 void Connection::dispatchMessage(Decoder& decoder)
 {
     assertIsCurrent(dispatcher());
-    RELEASE_ASSERT(m_client);
+    RefPtr client = m_client.get();
+    RELEASE_ASSERT(client);
     if (decoder.messageReceiverName() == ReceiverName::AsyncReply) {
         auto handler = takeAsyncReplyHandler(AtomicObjectIdentifier<AsyncReplyIDType>(decoder.destinationID()));
         if (!handler) {
@@ -1379,7 +1382,7 @@ void Connection::dispatchMessage(Decoder& decoder)
     }
 #endif
 
-    m_client->didReceiveMessage(*this, decoder);
+    client->didReceiveMessage(*this, decoder);
 }
 
 void Connection::dispatchMessage(UniqueRef<Decoder> message)
@@ -1407,7 +1410,7 @@ void Connection::dispatchMessage(UniqueRef<Decoder> message)
             if (m_ignoreInvalidMessageForTesting)
                 return;
 #endif
-            m_client->didReceiveInvalidMessage(*this, message->messageName(), message->indexOfObjectFailingDecoding());
+            protectedClient()->didReceiveInvalidMessage(*this, message->messageName(), message->indexOfObjectFailingDecoding());
             return;
         }
         m_inDispatchMessageMarkedToUseFullySynchronousModeForTesting++;
@@ -1454,7 +1457,7 @@ void Connection::dispatchMessage(UniqueRef<Decoder> message)
     }
 #endif
     if (didReceiveInvalidMessage && isValid())
-        m_client->didReceiveInvalidMessage(*this, message->messageName(), message->indexOfObjectFailingDecoding());
+        protectedClient()->didReceiveInvalidMessage(*this, message->messageName(), message->indexOfObjectFailingDecoding());
 }
 
 size_t Connection::numberOfMessagesToProcess(size_t totalMessages)

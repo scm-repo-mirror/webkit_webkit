@@ -325,6 +325,7 @@ public:
     ~Connection();
 
     Client* client() const { return m_client.get(); }
+    RefPtr<Client> protectedClient() const { return m_client.get(); }
 
     enum UniqueIDType { };
     using UniqueID = AtomicObjectIdentifier<UniqueIDType>;
@@ -848,7 +849,7 @@ template<typename T> Error Connection::waitForAndDispatchImmediately(uint64_t de
         return Error::InvalidConnection;
 
     ASSERT(decoderOrError.value()->destinationID() == destinationID);
-    m_client->didReceiveMessage(*this, decoderOrError.value());
+    protectedClient()->didReceiveMessage(*this, decoderOrError.value());
     return Error::NoError;
 }
 
