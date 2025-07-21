@@ -8544,7 +8544,7 @@ header: <WebCore/ShareableBitmap.h>
     WebCore::Headroom m_headroom;
     bool m_isOpaque;
     [Validator='*bitsPerComponent >= 1 && *bitsPerComponent <= 16'] unsigned bitsPerComponent();
-    [Validator='*bytesPerPixel >= 1 || *bytesPerPixel <= 8'] unsigned bytesPerPixel();
+    [Validator='*bytesPerPixel >= 1 && *bytesPerPixel <= 8'] unsigned bytesPerPixel();
     [Validator='*bytesPerRow >= m_size->width() * *bytesPerPixel'] unsigned bytesPerRow();
 #if USE(CG)
     [Validator='!(*m_bitmapInfo & ~(kCGBitmapAlphaInfoMask | static_cast<CGBitmapInfo>(kCGImageByteOrderMask) | kCGBitmapFloatComponents))'] CGBitmapInfo m_bitmapInfo;
