@@ -3166,3 +3166,5 @@ webkit.org/b/295119  imported/w3c/web-platform-tests/css/css-fonts/font-size-adj
 
 # setSinkId is not enabled on WK1
 media/video-setSinkId-default.html [ Skip ]
+
+webkit.org/b/289382 fast/canvas/offscreen-no-script-context-crash.html [ Skip ]
