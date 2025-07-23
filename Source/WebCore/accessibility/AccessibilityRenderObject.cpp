@@ -1455,6 +1455,11 @@ AXTextRuns AccessibilityRenderObject::textRuns()
         );
     }
 
+    if (is<SVGGraphicsElement>(element())) {
+        // Match TextIterator (and other browsers) and don't emit text positions for SVG graphics elements.
+        return { };
+    }
+
     if (isReplacedElement()) {
         auto* containingBlock = renderer ? renderer->containingBlock() : nullptr;
         FloatRect rect = frameRect();
