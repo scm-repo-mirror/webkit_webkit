@@ -451,7 +451,7 @@ void WebPage::registerRemoteFrameAccessibilityTokens(pid_t pid, std::span<const 
     auto remoteElement = [elementTokenData length] ? adoptNS([[NSAccessibilityRemoteUIElement alloc] initWithRemoteToken:elementTokenData.get()]) : nil;
 
     createMockAccessibilityElement(pid);
-    [accessibilityRemoteObject() setRemoteParent:remoteElement.get()];
+    [accessibilityRemoteObject() setRemoteParent:remoteElement.get() token:elementTokenData.get()];
     [accessibilityRemoteObject() setFrameIdentifier:frameID];
 }
 
@@ -465,7 +465,7 @@ void WebPage::registerUIProcessAccessibilityTokens(std::span<const uint8_t> elem
     [remoteElement setWindowUIElement:remoteWindow.get()];
     [remoteElement setTopLevelUIElement:remoteWindow.get()];
     [accessibilityRemoteObject() setWindow:remoteWindow.get()];
-    [accessibilityRemoteObject() setRemoteParent:remoteElement.get()];
+    [accessibilityRemoteObject() setRemoteParent:remoteElement.get() token:elementTokenData.get()];
 }
 
 void WebPage::getStringSelectionForPasteboard(CompletionHandler<void(String&&)>&& completionHandler)
