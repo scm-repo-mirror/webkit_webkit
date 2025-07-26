@@ -38,8 +38,8 @@
 
 namespace WebCore {
     
-AccessibilityScrollView::AccessibilityScrollView(AXID axID, ScrollView& view)
-    : AccessibilityObject(axID)
+AccessibilityScrollView::AccessibilityScrollView(AXID axID, ScrollView& view, AXObjectCache& cache)
+    : AccessibilityObject(axID, cache)
     , m_childrenDirty(false)
     , m_scrollView(view)
 {
@@ -89,9 +89,9 @@ void AccessibilityScrollView::detachRemoteParts(AccessibilityDetachmentType deta
     m_frameOwnerElement = nullptr;
 }
 
-Ref<AccessibilityScrollView> AccessibilityScrollView::create(AXID axID, ScrollView& view)
+Ref<AccessibilityScrollView> AccessibilityScrollView::create(AXID axID, ScrollView& view, AXObjectCache& cache)
 {
-    return adoptRef(*new AccessibilityScrollView(axID, view));
+    return adoptRef(*new AccessibilityScrollView(axID, view, cache));
 }
 
 ScrollView* AccessibilityScrollView::currentScrollView() const
