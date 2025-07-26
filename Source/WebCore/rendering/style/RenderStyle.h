@@ -1871,6 +1871,7 @@ public:
     void setContent(QuoteType, bool add = false);
     void setContentAltText(const String&);
     const String& contentAltText() const;
+
     inline bool hasAttrContent() const;
     void setHasAttrContent();
 

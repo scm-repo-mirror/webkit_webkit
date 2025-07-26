@@ -1070,7 +1070,7 @@ bool AccessibilityRenderObject::isAllowedChildOfTree() const
 
 static AccessibilityObjectInclusion objectInclusionFromAltText(const String& altText)
 {
-    // Don't ignore an image that has an alt tag.
+    // Don't ignore an image that has alt text.
     if (!altText.containsOnly<isASCIIWhitespace>())
         return AccessibilityObjectInclusion::IncludeObject;
 
@@ -1240,7 +1240,7 @@ bool AccessibilityRenderObject::computeIsIgnored() const
         if (image)
             altTextInclusion = objectInclusionFromAltText(image->altText());
         else
-            altTextInclusion = objectInclusionFromAltText(getAttribute(altAttr).string());
+            altTextInclusion = objectInclusionFromAltText(altTextFromAttributeOrStyle());
 
         if (altTextInclusion == AccessibilityObjectInclusion::IgnoreObject)
             return true;

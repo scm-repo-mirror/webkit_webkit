@@ -195,6 +195,7 @@ RenderPtr<RenderElement> RenderElement::createFor(Element& element, RenderStyle&
         Ref styleImage = downcast<ImageContentData>(*contentData).image();
         auto image = createRenderer<RenderImage>(RenderObject::Type::Image, element, WTFMove(style), const_cast<StyleImage*>(styleImage.ptr()));
         image->setIsGeneratedContent();
+        image->updateAltText();
         return image;
     }
 
