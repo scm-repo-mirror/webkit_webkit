@@ -1554,8 +1554,12 @@ ExceptionOr<Ref<Element>> Document::createElementForBindings(const AtomString& n
     Ref document = *this;
     RefPtr<CustomElementRegistry> registry;
     if (argument) [[unlikely]] {
-        if (auto* options = std::get_if<ElementCreationOptions>(&*argument))
+        if (auto* options = std::get_if<ElementCreationOptions>(&*argument)) {
             registry = options->customElementRegistry;
+            if (registry && !registry->isScoped() && registry != document->customElementRegistry())
+                return Exception { ExceptionCode::NotSupportedError };
+        }
+
     }
 
     auto result = [&]() -> ExceptionOr<Ref<Element>> {
@@ -1642,6 +1646,8 @@ ExceptionOr<Ref<Node>> Document::importNode(Node& nodeToImport, Variant<bool, Im
         auto options = std::get<ImportNodeOptions>(argument);
         subtree = !options.selfOnly;
         registry = WTFMove(options.customElementRegistry);
+        if (registry && !registry->isScoped() && registry != customElementRegistry())
+            return Exception { ExceptionCode::NotSupportedError };
     } else if (std::get<bool>(argument))
         subtree = true;
     if (!registry)
@@ -1728,7 +1734,7 @@ bool Document::hasValidNamespaceForAttributes(const QualifiedName& qName)
     return hasValidNamespaceForElements(qName);
 }
 
-static Ref<HTMLElement> createFallbackHTMLElement(Document& document, RefPtr<CustomElementRegistry>&& registry, const QualifiedName& name)
+static Ref<HTMLElement> createFallbackHTMLElement(Document& document, CustomElementRegistry* registry, const QualifiedName& name)
 {
     if (registry) {
         if (RefPtr elementInterface = registry->findInterface(name)) {
@@ -1739,7 +1745,7 @@ static Ref<HTMLElement> createFallbackHTMLElement(Document& document, RefPtr<Cus
         }
     }
     // FIXME: Should we also check the equality of prefix between the custom element and name?
-    return createUpgradeCandidateElement(document, registry.get(), name);
+    return createUpgradeCandidateElement(document, registry, name);
 }
 
 // FIXME: This should really be in a possible ElementFactory class.
@@ -1810,6 +1816,13 @@ RefPtr<CustomElementRegistry> Document::customElementRegistryForBindings()
 {
     if (RefPtr window = document().window())
         return &window->ensureCustomElementRegistry();
+    return customElementRegistry();
+}
+
+CustomElementRegistry* Document::effectiveGlobalCustomElementRegistry()
+{
+    if (!customElementRegistry() || customElementRegistry()->isScoped())
+        return nullptr;
     return customElementRegistry();
 }
 
@@ -1964,8 +1977,11 @@ ExceptionOr<Ref<Element>> Document::createElementNS(const AtomString& namespaceU
     Ref document = *this;
     RefPtr<CustomElementRegistry> registry;
     if (argument) [[unlikely]] {
-        if (auto* options = std::get_if<ElementCreationOptions>(&*argument))
+        if (auto* options = std::get_if<ElementCreationOptions>(&*argument)) {
             registry = options->customElementRegistry;
+            if (registry && !registry->isScoped() && registry != customElementRegistry())
+                return Exception { ExceptionCode::NotSupportedError };
+        }
     }
 
     auto opportunisticallyMatchedBuiltinElement = ([&]() -> RefPtr<Element> {

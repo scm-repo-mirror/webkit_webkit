@@ -128,10 +128,10 @@ ShadowRoot::~ShadowRoot()
 Node::InsertedIntoAncestorResult ShadowRoot::insertedIntoAncestor(InsertionType insertionType, ContainerNode& parentOfInsertedTree)
 {
     DocumentFragment::insertedIntoAncestor(insertionType, parentOfInsertedTree);
-    if (!hasScopedCustomElementRegistry() && usesNullCustomElementRegistry() && !parentOfInsertedTree.usesNullCustomElementRegistry()) {
+    if (!m_hasScopedCustomElementRegistry && usesNullCustomElementRegistry() && !parentOfInsertedTree.usesNullCustomElementRegistry()) {
         if (RefPtr registry = CustomElementRegistry::registryForElement(*host())) {
             clearUsesNullCustomElementRegistry();
-            setCustomElementRegistry(*registry);
+            setCustomElementRegistry(WTFMove(registry));
         }
     }
     if (insertionType.connectedToDocument) {
@@ -200,6 +200,9 @@ void ShadowRoot::moveShadowRootToNewDocument(Document& oldDocument, Document& ne
     // Style scopes are document specific.
     m_styleScope = makeUnique<Style::Scope>(*this);
     RELEASE_ASSERT_WITH_SECURITY_IMPLICATION(&m_styleScope->document() == &newDocument);
+
+    if (customElementRegistry() && !customElementRegistry()->isScoped())
+        setCustomElementRegistry(newDocument.effectiveGlobalCustomElementRegistry());
 }
 
 StyleSheetList& ShadowRoot::styleSheets()
@@ -279,7 +282,7 @@ bool ShadowRoot::childTypeAllowed(NodeType type) const
     }
 }
 
-Ref<Node> ShadowRoot::cloneNodeInternal(Document& document, CloningOperation type, CustomElementRegistry* registry)
+Ref<Node> ShadowRoot::cloneNodeInternal(Document& document, CloningOperation type, CustomElementRegistry*)
 {
     RELEASE_ASSERT(m_mode != ShadowRootMode::UserAgent);
     ASSERT(m_isClonable);
@@ -290,7 +293,7 @@ Ref<Node> ShadowRoot::cloneNodeInternal(Document& document, CloningOperation typ
             Clonable::Yes,
             m_serializable ? Serializable::Yes : Serializable::No,
             m_availableToElementInternals ? AvailableToElementInternals::Yes : AvailableToElementInternals::No,
-            registry,
+            nullptr,
             m_hasScopedCustomElementRegistry ? ScopedCustomElementRegistry::Yes : ScopedCustomElementRegistry::No);
     case CloningOperation::SelfOnly:
     case CloningOperation::Everything:
