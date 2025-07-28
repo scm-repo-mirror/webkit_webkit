@@ -168,6 +168,9 @@ enum LinearMediaPlayerErrors: Error {
     @nonobjc private var enterFullscreenCompletionHandler: ((Bool, (any Error)?) -> Void)?
     @nonobjc private var exitFullscreenCompletionHandler: ((Bool, (any Error)?) -> Void)?
 
+    @nonobjc
+    private var enterExternalCompletionHandler: ((Bool, (any Error)?) -> Void)?
+
     @nonobjc private var swiftOnlyData: SwiftOnlyData
     @nonobjc private var cancellables: [AnyCancellable] = []
 
@@ -202,31 +205,53 @@ enum LinearMediaPlayerErrors: Error {
 
         return viewController
     }
-    
-    func enterExternalPresentation(completionHandler: @MainActor @Sendable @escaping (Bool, (any Error)?) -> Void) {
+
+    func enterExternalPlayback(completionHandler: @MainActor @Sendable @escaping (Bool, (any Error)?) -> Void) {
         Logger.linearMediaPlayer.log("\(#function)")
 
         switch presentationState {
-        case .enteringFullscreen, .exitingFullscreen, .fullscreen, .external:
+        case .enteringFullscreen, .exitingFullscreen, .fullscreen, .enteringExternal, .external:
             completionHandler(false, LinearMediaPlayerErrors.invalidStateError)
         case .inline:
+            enterExternalCompletionHandler = completionHandler
+            swiftOnlyData.presentationState = .enteringExternal
+        @unknown default:
+            fatalError()
+        }
+    }
+
+    func completeEnterExternalPlayback() {
+        Logger.linearMediaPlayer.log("\(#function)")
+
+        let completionHandler = enterExternalCompletionHandler
+        enterExternalCompletionHandler = nil
+
+        switch presentationState {
+        case .enteringExternal:
             contentType = .planar
             showsPlaybackControls = true
             swiftOnlyData.fullscreenBehaviorsSubject.send([ .hostContentInline ])
             swiftOnlyData.presentationState = .external
             contentOverlay = .init(frame: .zero)
-            completionHandler(true, nil)
+            completionHandler?(true, nil)
+        case .enteringFullscreen, .exitingFullscreen, .fullscreen, .external, .inline:
+            completionHandler?(false, nil)
         @unknown default:
             fatalError()
         }
     }
-    
-    func exitExternalPresentation(completionHandler: @MainActor @Sendable @escaping (Bool, (any Error)?) -> Void) {
+
+    func exitExternalPlayback(completionHandler: @MainActor @Sendable @escaping (Bool, (any Error)?) -> Void) {
         Logger.linearMediaPlayer.log("\(#function)")
 
         switch presentationState {
         case .enteringFullscreen, .exitingFullscreen, .fullscreen, .inline:
             completionHandler(false, LinearMediaPlayerErrors.invalidStateError)
+        case .enteringExternal:
+            swiftOnlyData.presentationState = .inline
+            enterExternalCompletionHandler?(false, nil)
+            enterExternalCompletionHandler = nil
+            completionHandler(true, nil)
         case .external:
             delegate?.linearMediaPlayerClearVideoReceiverEndpoint?(self)
             swiftOnlyData.presentationState = .inline
@@ -257,7 +282,7 @@ enum LinearMediaPlayerErrors: Error {
             swiftOnlyData.presentationState = .fullscreen
         case .fullscreen:
             completionHandler(true, nil)
-        case .external:
+        case .enteringExternal, .external:
             completionHandler(false, LinearMediaPlayerErrors.invalidStateError)
         @unknown default:
             fatalError()
@@ -279,7 +304,7 @@ enum LinearMediaPlayerErrors: Error {
             swiftOnlyData.presentationState = .inline
         case .inline:
             completionHandler(true, nil)
-        case .external:
+        case .enteringExternal, .external:
             completionHandler(false, LinearMediaPlayerErrors.invalidStateError)
         @unknown default:
             fatalError()
@@ -296,6 +321,8 @@ extension WKSLinearMediaPlayer {
             swiftOnlyData.presentationMode = .inline
         case .enteringFullscreen:
             delegate?.linearMediaPlayerEnterFullscreen?(self)
+        case .enteringExternal:
+            break
         case .fullscreen, .external:
             swiftOnlyData.presentationMode = .fullscreenFromInline
         case .exitingFullscreen:
@@ -727,7 +754,7 @@ extension WKSLinearMediaPlayer {
             swiftOnlyData.presentationState = .enteringFullscreen
         case .fullscreen:
             swiftOnlyData.presentationState = .exitingFullscreen
-        case .enteringFullscreen, .exitingFullscreen, .external:
+        case .enteringFullscreen, .exitingFullscreen, .enteringExternal, .external:
             break
         @unknown default:
             fatalError()
@@ -741,7 +768,7 @@ extension WKSLinearMediaPlayer {
         case .inline:
             swiftOnlyData.enteredFromInline = true
             swiftOnlyData.presentationState = .enteringFullscreen
-        case .enteringFullscreen, .exitingFullscreen, .fullscreen, .external:
+        case .enteringFullscreen, .exitingFullscreen, .fullscreen, .enteringExternal, .external:
             break
         @unknown default:
             fatalError()
@@ -768,7 +795,7 @@ extension WKSLinearMediaPlayer {
         switch presentationState {
         case .fullscreen:
             swiftOnlyData.presentationState = .exitingFullscreen
-        case .inline, .enteringFullscreen, .exitingFullscreen, .external:
+        case .inline, .enteringFullscreen, .exitingFullscreen, .enteringExternal, .external:
             break
         @unknown default:
             fatalError()
