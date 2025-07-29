@@ -231,13 +231,8 @@ private:
 
     void populateGridPositionsForDirection(const GridTrackSizingAlgorithm&, GridTrackSizingDirection);
 
-    LayoutUnit gridAreaBreadthForOutOfFlowGridItem(const RenderBox&, GridTrackSizingDirection);
-    LayoutUnit logicalOffsetForOutOfFlowGridItem(const RenderBox&, GridTrackSizingDirection, LayoutUnit) const;
-    std::optional<LayoutRange> gridAreaRowRangeForOutOfFlow(const RenderBox& gridItem) const;
-    std::optional<LayoutRange> gridAreaColumnRangeForOutOfFlow(const RenderBox& gridItem) const;
-    std::pair<LayoutUnit, LayoutUnit> gridAreaPositionForOutOfFlowGridItem(const RenderBox&, GridTrackSizingDirection) const;
+    LayoutRange gridAreaRangeForOutOfFlow(const RenderBox&, GridTrackSizingDirection) const;
     std::pair<LayoutUnit, LayoutUnit> gridAreaPositionForInFlowGridItem(const RenderBox&, GridTrackSizingDirection) const;
-    std::pair<LayoutUnit, LayoutUnit> gridAreaPositionForGridItem(const RenderBox&, GridTrackSizingDirection) const;
 
     GridAxisPosition columnAxisPositionForGridItem(const RenderBox&) const;
     GridAxisPosition rowAxisPositionForGridItem(const RenderBox&) const;
@@ -318,10 +313,6 @@ private:
     ContentAlignmentData m_offsetBetweenRows;
 
     mutable GridMasonryLayout m_masonryLayout;
-
-    using OutOfFlowPositionsMap = SingleThreadWeakHashMap<const RenderBox, std::optional<size_t>>;
-    OutOfFlowPositionsMap m_outOfFlowItemColumn;
-    OutOfFlowPositionsMap m_outOfFlowItemRow;
 
     bool m_baselineItemsCached {false};
 
