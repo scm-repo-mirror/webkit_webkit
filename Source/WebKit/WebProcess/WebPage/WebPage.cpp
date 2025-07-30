@@ -7703,6 +7703,11 @@ void WebPage::setViewportSizeForCSSViewportUnits(std::optional<WebCore::FloatSiz
     }
 }
 
+bool WebPage::isIOSurfaceLosslessCompressionEnabled() const
+{
+    return m_page->settings().iOSurfaceLosslessCompressionEnabled();
+}
+
 bool WebPage::isSmartInsertDeleteEnabled()
 {
     return m_page->settings().smartInsertDeleteEnabled();
