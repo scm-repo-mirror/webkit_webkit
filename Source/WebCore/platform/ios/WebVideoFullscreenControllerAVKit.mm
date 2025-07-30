@@ -253,7 +253,7 @@ VideoFullscreenControllerContext::~VideoFullscreenControllerContext()
         m_playbackModel = nullptr;
         m_presentationModel = nullptr;
     } else
-        WorkQueue::protectedMain()->dispatchSync(WTFMove(notifyClientsModelWasDestroyed));
+        WorkQueue::mainSingleton().dispatchSync(WTFMove(notifyClientsModelWasDestroyed));
 }
 
 #pragma mark VideoPresentationModel
