@@ -355,6 +355,11 @@ void RenderGrid::layoutBlock(RelayoutChildren relayoutChildren, LayoutUnit)
 {
     ASSERT(needsLayout());
 
+    auto postLayoutTasks = WTF::makeScopeExit([&] {
+        m_outOfFlowItemColumn.clear();
+        m_outOfFlowItemRow.clear();
+    });
+
     if (relayoutChildren ==RelayoutChildren::No && simplifiedLayout())
         return;
 
@@ -1658,11 +1663,11 @@ void RenderGrid::layoutOutOfFlowBox(RenderBox& gridItem, RelayoutChildren relayo
         return;
     }
 
-    LayoutRange columnBreadth = gridAreaRangeForOutOfFlow(gridItem, GridTrackSizingDirection::ForColumns);
-    LayoutRange rowBreadth = gridAreaRangeForOutOfFlow(gridItem, GridTrackSizingDirection::ForRows);
+    LayoutUnit columnBreadth = gridAreaBreadthForOutOfFlowGridItem(gridItem, GridTrackSizingDirection::ForColumns);
+    LayoutUnit rowBreadth = gridAreaBreadthForOutOfFlowGridItem(gridItem, GridTrackSizingDirection::ForRows);
 
-    gridItem.setGridAreaContentLogicalWidth(columnBreadth.size());
-    gridItem.setGridAreaContentLogicalHeight(rowBreadth.size());
+    gridItem.setGridAreaContentLogicalWidth(columnBreadth);
+    gridItem.setGridAreaContentLogicalHeight(rowBreadth);
 
     // Mark for layout as we're resetting the position before and we relay in generic layout logic
     // for positioned items in order to get the offsets properly resolved.
@@ -2233,7 +2238,7 @@ GridAxisPosition RenderGrid::rowAxisPositionForGridItem(const RenderBox& gridIte
 
 LayoutUnit RenderGrid::columnAxisOffsetForGridItem(const RenderBox& gridItem) const
 {
-    auto [startOfRow, endOfRow] = gridAreaPositionForInFlowGridItem(gridItem, GridTrackSizingDirection::ForRows);
+    auto [startOfRow, endOfRow] = gridAreaPositionForGridItem(gridItem, GridTrackSizingDirection::ForRows);
     LayoutUnit startPosition = startOfRow + marginBeforeForChild(gridItem);
     LayoutUnit columnAxisGridItemSize = GridLayoutFunctions::isOrthogonalGridItem(*this, gridItem) ? gridItem.logicalWidth() + gridItem.marginLogicalWidth() : gridItem.logicalHeight() + gridItem.marginLogicalHeight();
     LayoutUnit masonryOffset = areMasonryRows() ? m_masonryLayout.offsetForGridItem(gridItem) : 0_lu;
@@ -2257,7 +2262,7 @@ LayoutUnit RenderGrid::columnAxisOffsetForGridItem(const RenderBox& gridItem) co
 
 LayoutUnit RenderGrid::rowAxisOffsetForGridItem(const RenderBox& gridItem) const
 {
-    auto [startOfColumn, endOfColumn] = gridAreaPositionForInFlowGridItem(gridItem, GridTrackSizingDirection::ForColumns);
+    auto [startOfColumn, endOfColumn] = gridAreaPositionForGridItem(gridItem, GridTrackSizingDirection::ForColumns);
     LayoutUnit startPosition = startOfColumn + marginStartForChild(gridItem);
     LayoutUnit masonryOffset = areMasonryColumns() ? m_masonryLayout.offsetForGridItem(gridItem) : 0_lu;
     if (hasAutoMarginsInRowAxis(gridItem))
@@ -2331,24 +2336,29 @@ Grid& RenderGrid::currentGrid()
     return m_grid.m_currentGrid;
 }
 
-LayoutRange RenderGrid::gridAreaRangeForOutOfFlow(const RenderBox& gridItem, GridTrackSizingDirection direction) const
+LayoutUnit RenderGrid::gridAreaBreadthForOutOfFlowGridItem(const RenderBox& gridItem, GridTrackSizingDirection direction)
 {
     ASSERT(gridItem.isOutOfFlowPositioned());
     bool isRowAxis = direction == GridTrackSizingDirection::ForColumns;
     int lastLine = numTracks(direction);
-    LayoutUnit borderEdge = isRowAxis ? borderStart() : borderBefore();
 
     int startLine, endLine;
     bool startIsAuto, endIsAuto;
-    if (!computeGridPositionsForOutOfFlowGridItem(gridItem, direction, startLine, startIsAuto, endLine, endIsAuto) || (startIsAuto && endIsAuto))
-        return LayoutRange(borderEdge, isRowAxis ? clientLogicalWidth() : clientLogicalHeight());
+    if (!computeGridPositionsForOutOfFlowGridItem(gridItem, direction, startLine, startIsAuto, endLine, endIsAuto))
+        return isRowAxis ? clientLogicalWidth() : clientLogicalHeight();
+
+    if (startIsAuto && endIsAuto)
+        return isRowAxis ? clientLogicalWidth() : clientLogicalHeight();
 
     LayoutUnit start;
     LayoutUnit end;
     auto& positions = isRowAxis ? m_columnPositions : m_rowPositions;
+    auto& outOfFlowItemLine = isRowAxis ? m_outOfFlowItemColumn : m_outOfFlowItemRow;
+    LayoutUnit borderEdge = isRowAxis ? borderStart() : borderBefore();
     if (startIsAuto)
         start = borderEdge;
     else {
+        outOfFlowItemLine.set(gridItem, startLine);
         start = positions[startLine];
     }
     if (endIsAuto)
@@ -2363,7 +2373,60 @@ LayoutRange RenderGrid::gridAreaRangeForOutOfFlow(const RenderBox& gridItem, Gri
             end -= isRowAxis ? m_offsetBetweenColumns.distributionOffset : m_offsetBetweenRows.distributionOffset;
         }
     }
-    return LayoutRange(start, std::max(end - start, 0_lu));
+    return std::max(end - start, 0_lu);
+}
+
+LayoutUnit RenderGrid::logicalOffsetForOutOfFlowGridItem(const RenderBox& gridItem, GridTrackSizingDirection direction, LayoutUnit trackBreadth) const
+{
+    ASSERT(gridItem.isOutOfFlowPositioned());
+    if (hasStaticPositionForGridItem(gridItem, direction))
+        return 0_lu;
+
+    bool isRowAxis = direction == GridTrackSizingDirection::ForColumns;
+    bool isFlowAwareRowAxis = GridLayoutFunctions::flowAwareDirectionForGridItem(*this, gridItem, direction) == GridTrackSizingDirection::ForColumns;
+    LayoutUnit gridItemPosition = isFlowAwareRowAxis ? gridItem.logicalLeft() : gridItem.logicalTop();
+    LayoutUnit gridBorder = isRowAxis ? borderLogicalLeft() : borderBefore();
+    LayoutUnit gridItemMargin = isRowAxis ? gridItem.marginLogicalLeft(writingMode()) : gridItem.marginBefore(writingMode());
+    LayoutUnit offset = gridItemPosition - gridBorder - gridItemMargin;
+    if (!isRowAxis || writingMode().isLogicalLeftInlineStart())
+        return offset;
+
+    LayoutUnit gridItemBreadth = isFlowAwareRowAxis ? gridItem.logicalWidth() + gridItem.marginLogicalWidth() : gridItem.logicalHeight() + gridItem.marginLogicalHeight();
+    return trackBreadth - offset - gridItemBreadth;
+}
+
+std::optional<LayoutRange> RenderGrid::gridAreaRowRangeForOutOfFlow(const RenderBox& gridItem) const
+{
+    ASSERT(gridItem.isOutOfFlowPositioned());
+    auto areaSize = GridLayoutFunctions::overridingContainingBlockContentSizeForGridItem(gridItem, GridTrackSizingDirection::ForRows);
+    if (!areaSize)
+        return std::nullopt;
+    LayoutRange range(borderBefore(), areaSize->value());
+    if (auto line = m_outOfFlowItemRow.get(gridItem))
+        range.moveTo(m_rowPositions[line.value()]);
+    return range;
+}
+
+std::optional<LayoutRange> RenderGrid::gridAreaColumnRangeForOutOfFlow(const RenderBox& gridItem) const
+{
+    ASSERT(gridItem.isOutOfFlowPositioned());
+    auto areaSize = GridLayoutFunctions::overridingContainingBlockContentSizeForGridItem(gridItem, GridTrackSizingDirection::ForColumns);
+    if (!areaSize)
+        return std::nullopt;
+    LayoutRange range(borderStart(), areaSize->value());
+    if (auto line = m_outOfFlowItemColumn.get(gridItem))
+        range.moveTo(m_columnPositions[line.value()]);
+    return range;
+}
+
+std::pair<LayoutUnit, LayoutUnit> RenderGrid::gridAreaPositionForOutOfFlowGridItem(const RenderBox& gridItem, GridTrackSizingDirection direction) const
+{
+    std::optional<LayoutRange> range = direction == GridTrackSizingDirection::ForColumns
+        ? gridAreaColumnRangeForOutOfFlow(gridItem)
+        : gridAreaRowRangeForOutOfFlow(gridItem);
+    ASSERT(range);
+    range->moveBy(logicalOffsetForOutOfFlowGridItem(gridItem, direction, range->size()));
+    return { range->min(), range->max() };
 }
 
 std::pair<LayoutUnit, LayoutUnit> RenderGrid::gridAreaPositionForInFlowGridItem(const RenderBox& gridItem, GridTrackSizingDirection direction) const
@@ -2386,6 +2449,13 @@ std::pair<LayoutUnit, LayoutUnit> RenderGrid::gridAreaPositionForInFlowGridItem(
         end -= gridGap(direction) + gridItemOffset(direction);
     }
     return { start, end };
+}
+
+std::pair<LayoutUnit, LayoutUnit> RenderGrid::gridAreaPositionForGridItem(const RenderBox& gridItem, GridTrackSizingDirection direction) const
+{
+    if (gridItem.isOutOfFlowPositioned())
+        return gridAreaPositionForOutOfFlowGridItem(gridItem, direction);
+    return gridAreaPositionForInFlowGridItem(gridItem, direction);
 }
 
 std::pair<OverflowAlignment, ContentPosition> static resolveContentDistributionFallback(ContentDistribution distribution)
