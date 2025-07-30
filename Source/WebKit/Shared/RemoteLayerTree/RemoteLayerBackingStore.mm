@@ -578,7 +578,7 @@ RetainPtr<id> RemoteLayerBackingStoreProperties::layerContentsBufferFromBackendH
             case LayerContentsType::CachedIOSurface:
                 if (auto surface = WebCore::IOSurface::createFromSendRight(WTFMove(machSendRight))) {
 #if HAVE(SUPPORT_HDR_DISPLAY_APIS)
-                    if (isDelegatedDisplay && surface->hasFormat(WebCore::IOSurface::Format::RGBA16F) && !surface->contentEDRHeadroom())
+                    if (isDelegatedDisplay && surface->pixelFormat() == WebCore::IOSurface::Format::RGBA16F && !surface->contentEDRHeadroom())
                         surface->loadContentEDRHeadroom();
 #endif
                     contents = surface->asCAIOSurfaceLayerContents();
