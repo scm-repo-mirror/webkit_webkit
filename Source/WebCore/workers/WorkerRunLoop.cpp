@@ -34,10 +34,7 @@
 
 #include "JSDOMExceptionHandling.h"
 #include "JSDOMGlobalObject.h"
-#include "Logging.h"
-#include "SWServer.h"
 #include "ScriptExecutionContext.h"
-#include "ServiceWorkerGlobalScope.h"
 #include "SharedTimer.h"
 #include "ThreadGlobalData.h"
 #include "ThreadTimers.h"
@@ -50,10 +47,6 @@
 #include <JavaScriptCore/JSRunLoopTimer.h>
 #include <wtf/AutodrainedPool.h>
 #include <wtf/TZoneMallocInlines.h>
-
-#if PLATFORM(COCOA)
-#include <wtf/cocoa/RuntimeApplicationChecksCocoa.h>
-#endif
 
 #if USE(GLIB)
 #include <glib.h>
@@ -168,88 +161,17 @@ void WorkerDedicatedRunLoop::run(WorkerOrWorkletGlobalScope* context)
 {
     RunLoopSetup setup(*this, RunLoopSetup::IsForDebugging::No);
     ModePredicate modePredicate(defaultMode(), false);
-
-    // <rdar://155433911> - ServiceWorkers sometimes end up spinning their worker runloop endlessly,
-    // repeatedly timing out getting a task from the message queue, not firing the web shared timer,
-    // then firing their CFRunLoopTimers which do very little (or nothing).
-    // This spinning is wasteful and - we suspect - unproductive.
-    // For ServiceWorkers only, we will log this scenario to learn more.
-    // The requirements are:
-    // 1 - The RunLoop must spin repeatedly, never handling a message or firing the web shared timer
-    // 2 - It must do so spanning at least "defaultTerminationDelay" seconds
-    // 3 - It must do so at a frequency we expect to be bad. (I'm arbitrarily choosing 10hz)
-    struct RunLoopStatus {
-        enum class ShouldLogExcessiveRunLoopSpinning : bool { No, Yes };
-        ShouldLogExcessiveRunLoopSpinning addRunLoopSpin()
-        {
-            numberOfRunLoopSpinsInARow++;
-            auto now = MonotonicTime::now();
-
-            if (timeOfFirstRunLoopOnlySpin == MonotonicTime::infinity()) {
-                timeOfFirstRunLoopOnlySpin = now;
-                return ShouldLogExcessiveRunLoopSpinning::No;
-            }
-
-            static constexpr Seconds lengthOfAllowableSpinning = SWServer::defaultTerminationDelay;
-
-            auto timeSpinning = now - timeOfFirstRunLoopOnlySpin;
-            if (timeSpinning < lengthOfAllowableSpinning)
-                return ShouldLogExcessiveRunLoopSpinning::No;
-
-            static const double frequencyLimit = 10.0;
-            if (numberOfRunLoopSpinsInARow / timeSpinning.seconds() < frequencyLimit)
-                return ShouldLogExcessiveRunLoopSpinning::No;
-
-            return ShouldLogExcessiveRunLoopSpinning::Yes;
-        }
-
-        double secondsSpentSpinning()
-        {
-            return std::max(0.0, (MonotonicTime::now() - timeOfFirstRunLoopOnlySpin).seconds());
-        }
-
-    private:
-        MonotonicTime timeOfFirstRunLoopOnlySpin { MonotonicTime::infinity() };
-        size_t numberOfRunLoopSpinsInARow { 0 };
-    };
-    RunLoopStatus currentRunLoopStatus;
-    RunInModeResult result;
-
+    MessageQueueWaitResult result;
     do {
         result = runInMode(context, modePredicate);
-
-        // Only do further RunLoop status tracking for ServiceWorker contexts.
-        if (!is<ServiceWorkerGlobalScope>(context))
-            continue;
-
-        // We consider the message queue handling a message or this thread's shared timer firing to signify
-        // web content "making progress", so either are an acceptable result;
-        if (result.messageQueueResult != MessageQueueTimeout || result.firedSharedTimer) {
-            currentRunLoopStatus = { };
-            continue;
-        }
-
-        if (currentRunLoopStatus.addRunLoopSpin() == RunLoopStatus::ShouldLogExcessiveRunLoopSpinning::No)
-            continue;
-
-        auto reason = makeString("ServiceWorker message queue spun excessively without making web content progress for "_s, currentRunLoopStatus.secondsSpentSpinning(), " seconds. Shared timer firing in "_s, m_sharedTimer->fireTimeDelay().seconds(), " seconds. RunLoop rimers before: "_s, result.activeRunLoopTimersBeforeFiring, ". RunLoop timers after: "_s, result.activeRunLoopTimersAfterFiring);
-        RELEASE_LOG(ServiceWorker, "%s", reason.utf8().data());
-
-#if PLATFORM(COCOA)
-        if (WTF::CocoaApplication::isAppleApplication())
-            os_fault_with_payload(OS_REASON_WEBKIT, 0, nullptr, 0, reason.utf8().data(), 0);
-#endif
-
-        // Reset status to start tracking a new sequence of spinning.
-        currentRunLoopStatus = { };
-    } while (result.messageQueueResult != MessageQueueTerminated);
+    } while (result != MessageQueueTerminated);
     runCleanupTasks(context);
 }
 
 MessageQueueWaitResult WorkerDedicatedRunLoop::runInDebuggerMode(WorkerOrWorkletGlobalScope& context)
 {
     RunLoopSetup setup(*this, RunLoopSetup::IsForDebugging::Yes);
-    return runInMode(&context, ModePredicate { debuggerMode(), false }).messageQueueResult;
+    return runInMode(&context, ModePredicate { debuggerMode(), false });
 }
 
 bool WorkerDedicatedRunLoop::runInMode(WorkerOrWorkletGlobalScope* context, const String& mode, bool allowEventLoopTasks)
@@ -257,10 +179,10 @@ bool WorkerDedicatedRunLoop::runInMode(WorkerOrWorkletGlobalScope* context, cons
     ASSERT(mode != debuggerMode());
     RunLoopSetup setup(*this, RunLoopSetup::IsForDebugging::No);
     ModePredicate modePredicate(String { mode }, allowEventLoopTasks);
-    return runInMode(context, modePredicate).messageQueueResult != MessageQueueWaitResult::MessageQueueTerminated;
+    return runInMode(context, modePredicate) != MessageQueueWaitResult::MessageQueueTerminated;
 }
 
-WorkerDedicatedRunLoop::RunInModeResult WorkerDedicatedRunLoop::runInMode(WorkerOrWorkletGlobalScope* context, const ModePredicate& predicate)
+MessageQueueWaitResult WorkerDedicatedRunLoop::runInMode(WorkerOrWorkletGlobalScope* context, const ModePredicate& predicate)
 {
     ASSERT(context);
     ASSERT(context->workerOrWorkletThread()->thread() == &Thread::currentSingleton());
@@ -311,11 +233,8 @@ WorkerDedicatedRunLoop::RunInModeResult WorkerDedicatedRunLoop::runInMode(Worker
         script->removeTimerSetNotification(timerAddedTask);
     }
 
-    RunInModeResult runInModeResult;
-    runInModeResult.messageQueueResult = result;
+    // If the context is closing, don't execute any further JavaScript tasks (per section 4.1.1 of the Web Workers spec).  However, there may be implementation cleanup tasks in the queue, so keep running through it.
 
-    // If the context is closing, don't execute any further JavaScript tasks (per section 4.1.1 of the Web Workers spec).
-    // However, there may be implementation cleanup tasks in the queue, so keep running through it.
     switch (result) {
     case MessageQueueTerminated:
         break;
@@ -325,26 +244,19 @@ WorkerDedicatedRunLoop::RunInModeResult WorkerDedicatedRunLoop::runInMode(Worker
         break;
 
     case MessageQueueTimeout:
-        if (!context->isClosing() && !isBeingDebugged()) {
-            runInModeResult.firedSharedTimer = true;
+        if (!context->isClosing() && !isBeingDebugged())
             m_sharedTimer->fire();
-        }
         break;
     }
 
 #if USE(CF)
     if (result != MessageQueueTerminated) {
-        if (nextCFRunLoopTimerFireDate <= CFAbsoluteTimeGetCurrent()) {
-            runInModeResult.firedRunLoopTimer = true;
-
-            runInModeResult.activeRunLoopTimersBeforeFiring = RunLoop::currentSingleton().listActiveTimersForLogging();
+        if (nextCFRunLoopTimerFireDate <= CFAbsoluteTimeGetCurrent())
             CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, /*returnAfterSourceHandled*/ false);
-            runInModeResult.activeRunLoopTimersAfterFiring = RunLoop::currentSingleton().listActiveTimersForLogging();
-        }
     }
 #endif
 
-    return runInModeResult;
+    return result;
 }
 
 void WorkerDedicatedRunLoop::runCleanupTasks(WorkerOrWorkletGlobalScope* context)
