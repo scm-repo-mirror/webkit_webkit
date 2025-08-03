@@ -8189,3 +8189,6 @@ fast/forms/ios/form-control-refresh/button/button-type-submit.html [ ImageOnlyFa
 fast/forms/ios/form-control-refresh/color/paint-within-box.html [ ImageOnlyFailure ]
 fast/forms/ios/form-control-refresh/select/decoration-color.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-view-transitions/fractional-translation-from-position.html [ ImageOnlyFailure ]
+
+# <rdar://156470462> RTL inputs with type=password have larger logical width than RTL inputs with type number, url, tel, & text
+fast/forms/input-password-logical-widths.html [ Failure ]
