@@ -550,7 +550,7 @@ bool RenderThemeCocoa::controlSupportsTints(const RenderObject& box) const
         break;
     }
 #else
-    UNUSED_PARAM(box)
+    UNUSED_PARAM(box);
 #endif
 
     return false;
