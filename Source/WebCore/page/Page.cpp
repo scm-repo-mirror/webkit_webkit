@@ -897,6 +897,8 @@ DOMAudioSessionType Page::audioSessionType() const
 
 void Page::setUserDidInteractWithPage(bool didInteract)
 {
+    m_userHasInteractedSinceLastPageLoad = didInteract;
+
     if (m_topDocumentSyncData->userDidInteractWithPage == didInteract)
         return;
 
@@ -1842,6 +1844,7 @@ void Page::didCommitLoad()
 #endif
 
     m_hasEverSetVisibilityAdjustment = false;
+    m_userHasInteractedSinceLastPageLoad = false;
 
     m_mainFrameURLFragment = { };
 
@@ -5342,7 +5345,7 @@ void Page::updateFixedContainerEdges(BoxSideSet sides)
         auto maximumOffset = frameView->maximumScrollOffset();
 
         bool canSampleTopEdge = settings().topContentInsetBackgroundCanChangeAfterScrolling()
-            || !frameView->wasEverScrolledExplicitlyByUser()
+            || (!frameView->wasEverScrolledExplicitlyByUser() && !m_userHasInteractedSinceLastPageLoad)
             || document->parsing();
 
         if (scrollOffset.y() < minimumOffset.y() || !canSampleTopEdge)
