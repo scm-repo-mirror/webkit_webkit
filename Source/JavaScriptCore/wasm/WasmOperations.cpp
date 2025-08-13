@@ -1713,11 +1713,6 @@ JSC_DEFINE_NOEXCEPT_JIT_OPERATION(operationWasmRethrow, void*, (JSWebAssemblyIns
     JSGlobalObject* globalObject = instance->globalObject();
 
     JSValue thrownValue = JSValue::decode(encodedThrownValue);
-    if (auto* exception = jsDynamicCast<JSWebAssemblyException*>(thrownValue)) {
-        if (&exception->tag() == &Wasm::Tag::jsExceptionTag())
-            thrownValue = JSValue::decode(exception->payload().at(0));
-    }
-
     throwException(globalObject, throwScope, thrownValue);
 
     genericUnwind(vm, callFrame);
