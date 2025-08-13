@@ -3227,6 +3227,12 @@ void WebPageProxy::dispatchActivityStateChange()
     }
 #endif
 
+#if PLATFORM(MAC)
+    // FIXME: This could be cross-platform, but macOS-only for now to limit risk.
+    if (isNowInWindow)
+        protectedDrawingArea()->hideContentUntilAnyUpdate();
+#endif
+
     updateBackingStoreDiscardableState();
 
     if (activityStateChangeID != ActivityStateChangeAsynchronous)
