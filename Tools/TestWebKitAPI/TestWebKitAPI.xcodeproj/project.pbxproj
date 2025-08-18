@@ -2467,6 +2467,8 @@
 		0794742C25CB33B000C597EE /* camera-to-canvas.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "camera-to-canvas.html"; sourceTree = "<group>"; };
 		0799C34A1EBA32F4003B7532 /* disableGetUserMedia.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = disableGetUserMedia.html; sourceTree = "<group>"; };
 		079D45F12A2A6BBE003830C7 /* Viewport.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Viewport.mm; sourceTree = "<group>"; };
+		07A1E0222E2EB852004E5C66 /* DecomposedAttributedText.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DecomposedAttributedText.h; path = cocoa/DecomposedAttributedText.h; sourceTree = "<group>"; };
+		07A1E0232E2EB852004E5C66 /* DecomposedAttributedText.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = DecomposedAttributedText.mm; path = cocoa/DecomposedAttributedText.mm; sourceTree = "<group>"; };
 		07C02FD12D6D6FBC0004ED97 /* rtl-sideways-scrolling.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "rtl-sideways-scrolling.html"; sourceTree = "<group>"; };
 		07C046C91E42573E007201E7 /* CARingBufferTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CARingBufferTest.cpp; sourceTree = "<group>"; };
 		07CC7DFD2266330800E39181 /* MediaBufferingPolicy.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MediaBufferingPolicy.mm; sourceTree = "<group>"; };
@@ -4588,6 +4590,8 @@
 				5C157A082717C56600ED5280 /* DaemonTestUtilities.h */,
 				5C157A072717C56600ED5280 /* DaemonTestUtilities.mm */,
 				F47DFB2721A885E700021FB6 /* DataDetectorsCoreSPI.h */,
+				07A1E0222E2EB852004E5C66 /* DecomposedAttributedText.h */,
+				07A1E0232E2EB852004E5C66 /* DecomposedAttributedText.mm */,
 				F46128B4211C861A00D9FADB /* DragAndDropSimulator.h */,
 				3302A64D2A11B4410093FA2A /* DragAndDropSimulator.mm */,
 				F44D06481F3962E3001A0E29 /* EditingTestHarness.h */,
