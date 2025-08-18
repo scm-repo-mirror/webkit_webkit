@@ -535,7 +535,7 @@ bool RenderThemeCocoa::controlSupportsTints(const RenderObject& box) const
 #if PLATFORM(MAC)
     switch (box.style().usedAppearance()) {
     case StyleAppearance::Button:
-        return isSubmitButton(box.node());
+        return isSubmitStyleButton(box.node());
     case StyleAppearance::Checkbox:
     case StyleAppearance::Radio:
         return isChecked(box) || isIndeterminate(box);
@@ -1228,7 +1228,7 @@ bool RenderThemeCocoa::paintButtonForVectorBasedControls(const RenderObject& box
 #if PLATFORM(MAC)
         isWindowActive = states.contains(ControlStyle::State::WindowActive);
 #endif
-        if (isSubmitButton(box.node()) && isWindowActive)
+        if (isSubmitStyleButton(box.node()) && isWindowActive)
             backgroundColor = controlTintColor(box.style(), styleColorOptions);
         else
             backgroundColor = colorCompositedOverCanvasColor(CSSValueAppleSystemOpaqueSecondaryFill, styleColorOptions);
@@ -2362,7 +2362,7 @@ bool RenderThemeCocoa::adjustButtonStyleForVectorBasedControls(RenderStyle& styl
     };
 
     if (!style.hasExplicitlySetColor()) {
-        if (isSubmitButton(element))
+        if (isSubmitStyleButton(element))
             adjustStyleForSubmitButton();
         else
             style.setColor(buttonTextColor(styleColorOptions, isEnabled));
@@ -4407,6 +4407,17 @@ void RenderThemeCocoa::adjustTextControlInnerTextStyle(RenderStyle& style, const
 #endif
 
     RenderTheme::adjustTextControlInnerTextStyle(style, shadowHostStyle, shadowHost);
+}
+
+bool RenderThemeCocoa::isSubmitStyleButton(const Node* node) const
+{
+    if (RefPtr input = dynamicDowncast<HTMLInputElement>(node))
+        return input->isSubmitButton();
+
+    if (RefPtr button = dynamicDowncast<HTMLButtonElement>(node))
+        return button->isExplicitlySetSubmitButton();
+
+    return false;
 }
 
 }
