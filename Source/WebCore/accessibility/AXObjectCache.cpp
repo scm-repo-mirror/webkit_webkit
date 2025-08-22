@@ -2042,7 +2042,7 @@ void AXObjectCache::onScrollbarFrameRectChange(const Scrollbar& scrollbar)
         return;
 
     if (RefPtr axScrollbar = get(const_cast<Scrollbar*>(&scrollbar)))
-        m_geometryManager->cacheRect(axScrollbar->objectID(), enclosingIntRect(axScrollbar->relativeFrame()));
+        std::ignore = m_geometryManager->cacheRectIfNeeded(axScrollbar->objectID(), enclosingIntRect(axScrollbar->relativeFrame()));
 #else
     UNUSED_PARAM(scrollbar);
 #endif
@@ -5224,14 +5224,31 @@ void AXObjectCache::onPaint(const RenderObject& renderer, IntRect&& paintRect) c
 {
     if (!m_pageID)
         return;
-    m_geometryManager->cacheRect(m_renderObjectMapping.getOptional(const_cast<RenderObject&>(renderer)), WTFMove(paintRect));
+
+    if (std::optional axID = m_renderObjectMapping.getOptional(const_cast<RenderObject&>(renderer))) {
+        bool cachedNewRect = m_geometryManager->cacheRectIfNeeded(*axID, WTFMove(paintRect));
+
+        if (cachedNewRect) {
+            auto* renderImage = dynamicDowncast<RenderImage>(renderer);
+            if (RefPtr imageMap = renderImage ? renderImage->imageMap() : nullptr) {
+                // <area> elements have no renderers and thus will never be painted themselves.
+                // If the image was repainted in a new location, the associated area elements
+                // probably need new rects cached too.
+                for (Ref area : descendantsOfType<HTMLAreaElement>(*imageMap)) {
+                    if (RefPtr areaObject = get(area.get()))
+                        std::ignore = m_geometryManager->cacheRectIfNeeded(areaObject->objectID(), snappedIntRect(LayoutRect(areaObject->relativeFrame())));
+                }
+            }
+        }
+    }
 }
 
 void AXObjectCache::onPaint(const Widget& widget, IntRect&& paintRect) const
 {
     if (!m_pageID)
         return;
-    m_geometryManager->cacheRect(m_widgetObjectMapping.getOptional(const_cast<Widget&>(widget)), WTFMove(paintRect));
+    if (std::optional axID = m_widgetObjectMapping.getOptional(const_cast<Widget&>(widget)))
+        std::ignore = m_geometryManager->cacheRectIfNeeded(*axID, WTFMove(paintRect));
 }
 
 void AXObjectCache::onPaint(const RenderText& renderText, size_t lineIndex)

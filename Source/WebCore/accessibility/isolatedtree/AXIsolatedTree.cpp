@@ -30,6 +30,7 @@
 
 #include "AXIsolatedObject.h"
 #include "AXLogger.h"
+#include "AccessibilityImageMapLink.h"
 #include "AccessibilityTable.h"
 #include "AccessibilityTableCell.h"
 #include "AccessibilityTableRow.h"
@@ -1899,8 +1900,9 @@ IsolatedObjectData createIsolatedObjectData(const Ref<AccessibilityObject>& axOb
             // The GeometryManager does not have a relative frame for ScrollViews, WebAreas, or scrollbars yet. We need to get it from the
             // live object so that we don't need to hit the main thread in the case a request comes in while the whole isolated tree is being built.
             setProperty(AXProperty::RelativeFrame, enclosingIntRect(object.relativeFrame()));
-        } else if (!object.renderer() && object.node() && is<AccessibilityNodeObject>(object)) {
+        } else if (!object.renderer() && object.node() && is<AccessibilityNodeObject>(object) && !is<AccessibilityImageMapLink>(object)) {
             // The frame of node-only AX objects is made up of their children.
+            // This excludes image-map links (a.k.a. <area> elements), which will never have rendered children.
             getsGeometryFromChildren = true;
         } else if (object.isMenuListPopup()) {
             // AccessibilityMenuListPopup's elementRect is hardcoded to return an empty rect, so preserve that behavior.
