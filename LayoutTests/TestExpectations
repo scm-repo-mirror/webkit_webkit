@@ -7720,7 +7720,6 @@ webkit.org/b/289743 imported/w3c/web-platform-tests/css/css-anchor-position/anch
 webkit.org/b/289743 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-position-multicol-008.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-004.html [ ImageOnlyFailure ]
-imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-chained-fallback.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-position-try-012.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-to-sticky-003.html [ ImageOnlyFailure ]
 imported/w3c/web-platform-tests/css/css-anchor-position/anchor-scroll-to-sticky-004.html [ ImageOnlyFailure ]

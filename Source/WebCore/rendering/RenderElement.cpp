@@ -26,6 +26,7 @@
 #include "RenderElement.h"
 
 #include "AXObjectCache.h"
+#include "AnchorPositionEvaluator.h"
 #include "BorderPainter.h"
 #include "BorderShape.h"
 #include "CachedResourceLoader.h"
@@ -2738,6 +2739,8 @@ void RenderElement::layoutIfNeeded()
         return;
     }
     layout();
+    if (Style::AnchorPositionEvaluator::isAnchorPositioned(style()))
+        Style::AnchorPositionEvaluator::captureScrollSnapshots(downcast<RenderBox>(*this));
 }
 
 }
