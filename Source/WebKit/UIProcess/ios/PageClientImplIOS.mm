@@ -47,6 +47,7 @@
 #import "RunningBoardServicesSPI.h"
 #import "TapHandlingResult.h"
 #import "UIKitSPI.h"
+#import "UIKitUtilities.h"
 #import "UndoOrRedo.h"
 #import "ViewSnapshotStore.h"
 #import "WKContentView.h"
@@ -1178,6 +1179,11 @@ bool PageClientImpl::isSimulatingCompatibilityPointerTouches() const
 void PageClientImpl::runModalJavaScriptDialog(CompletionHandler<void()>&& callback)
 {
     [contentView() runModalJavaScriptDialog:WTFMove(callback)];
+}
+
+FloatBoxExtent PageClientImpl::computedObscuredInset() const
+{
+    return floatBoxExtent([webView() _computedObscuredInset]);
 }
 
 WebCore::Color PageClientImpl::contentViewBackgroundColor()
