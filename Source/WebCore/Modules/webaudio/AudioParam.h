@@ -34,6 +34,7 @@
 #include "AutomationRate.h"
 #include <JavaScriptCore/Forward.h>
 #include <sys/types.h>
+#include <wtf/Lock.h>
 #include <wtf/LoggerHelper.h>
 #include <wtf/RefCounted.h>
 #include <wtf/text/WTFString.h>
@@ -74,6 +75,9 @@ public:
     AutomationRate automationRate() const { return m_automationRate; }
     ExceptionOr<void> setAutomationRate(AutomationRate);
 
+    bool isAudioRate() const { return m_automationRate == AutomationRate::ARate; }
+
+    Lock& rateLock() const { return m_rateLock; }
     // Final value for k-rate parameters, otherwise use calculateSampleAccurateValues() for a-rate.
     // Must be called in the audio thread.
     float finalValue();
@@ -135,6 +139,7 @@ private:
     float m_defaultValue;
     float m_minValue;
     float m_maxValue;
+    mutable Lock m_rateLock;
     AutomationRate m_automationRate;
     AutomationRateMode m_automationRateMode;
 

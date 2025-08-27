@@ -31,6 +31,7 @@
 #include "AudioUtilities.h"
 #include "VectorMath.h"
 #include <algorithm>
+#include <wtf/Lock.h>
 #include <wtf/StdLibExtras.h>
 #include <wtf/TZoneMallocInlines.h>
 
@@ -108,9 +109,24 @@ void DelayDSPKernel::process(std::span<const float> source, std::span<float> des
     if (m_buffer.isEmpty() || !source.data() || !destination.data()) [[unlikely]]
         return;
 
-    bool sampleAccurate = delayProcessor() && delayProcessor()->delayTime().hasSampleAccurateValues();
-    bool shouldUseARate = delayProcessor() && delayProcessor()->delayTime().automationRate() == AutomationRate::ARate;
-    if (sampleAccurate && shouldUseARate)
+    CheckedPtr<DelayProcessor> proc = delayProcessor();
+    if (!proc) {
+        std::ranges::fill(destination, 0.0f);
+        return;
+    }
+
+    Lock& rateLock = proc->delayTime().rateLock();
+    if (!rateLock.tryLock()) {
+        std::ranges::fill(destination, 0.0f);
+        return;
+    }
+
+    Locker locker { AdoptLock, rateLock };
+
+    bool isAudioRate = proc->delayTime().isAudioRate();
+    bool sampleAccurate = proc->delayTime().hasSampleAccurateValues();
+
+    if (isAudioRate && sampleAccurate)
         processARate(source, destination);
     else
         processKRate(source, destination);
