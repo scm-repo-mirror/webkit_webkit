@@ -705,16 +705,6 @@ void WebPage::getSelectionContext(CompletionHandler<void(const String&, const St
 
     completionHandler(selectedText, textBefore, textAfter);
 }
-
-NSObject *WebPage::accessibilityObjectForMainFramePlugin()
-{
-#if ENABLE(PDF_PLUGIN)
-    if (RefPtr pluginView = mainFramePlugIn())
-        return pluginView->accessibilityObject();
-#endif
-
-    return nil;
-}
     
 void WebPage::updateRemotePageAccessibilityOffset(WebCore::FrameIdentifier, WebCore::IntPoint offset)
 {
