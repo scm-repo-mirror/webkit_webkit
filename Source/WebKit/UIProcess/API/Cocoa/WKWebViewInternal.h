@@ -145,6 +145,7 @@ enum class HideScrollPocketReason : uint8_t {
 };
 }
 
+@class NSScrollPocket;
 @class WKColorExtensionView;
 @class WKContentView;
 @class WKPasswordView;
@@ -555,6 +556,7 @@ struct PerWebProcessState {
 
 #if PLATFORM(MAC) && ENABLE(CONTENT_INSET_BACKGROUND_FILL)
 - (NSColor *)_adjustedColorForTopContentInsetColorFromUIDelegate:(NSColor *)proposedColor;
+@property (nonatomic, readonly) RetainPtr<NSScrollPocket> _copyTopScrollPocket;
 @property (nonatomic, setter=_setAlwaysPrefersSolidColorHardPocket:) BOOL _alwaysPrefersSolidColorHardPocket;
 #endif
 

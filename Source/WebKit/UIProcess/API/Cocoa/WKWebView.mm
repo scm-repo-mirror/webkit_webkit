@@ -3393,6 +3393,17 @@ static WebCore::CocoaColor *sampledFixedPositionContentColor(const WebCore::Fixe
     return adjustedColor.get() ?: color;
 }
 
+- (RetainPtr<NSScrollPocket>)_copyTopScrollPocket
+{
+    RetainPtr clonedScrollPocket = adoptNS([NSScrollPocket new]);
+    RetainPtr currentScrollPocket = _impl->topScrollPocket();
+    [clonedScrollPocket setEdge:[currentScrollPocket edge]];
+    [clonedScrollPocket setStyle:[currentScrollPocket style]];
+    [clonedScrollPocket setPrefersSolidColorHardPocket:[currentScrollPocket prefersSolidColorHardPocket]];
+    [clonedScrollPocket setCaptureColor:[currentScrollPocket captureColor]];
+    return clonedScrollPocket;
+}
+
 - (BOOL)_alwaysPrefersSolidColorHardPocket
 {
     return _alwaysPrefersSolidColorHardPocket;
