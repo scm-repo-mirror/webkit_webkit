@@ -1137,6 +1137,11 @@ bool RenderThemeCocoa::paintCheckboxForVectorBasedControls(const RenderObject& b
     context.setFillColor(checkboxRadioIndicatorColorForVectorBasedControls(controlStates, styleColorOptions));
     context.fillPath(glyphPath);
 
+#if PLATFORM(MAC)
+    if (Theme::singleton().userPrefersContrast())
+        drawHighContrastOutline(context, path, box.styleColorOptions());
+#endif
+
     return true;
 }
 
@@ -1191,6 +1196,11 @@ bool RenderThemeCocoa::paintRadioForVectorBasedControls(const RenderObject& box,
 
         context.setFillColor(checkboxRadioIndicatorColorForVectorBasedControls(controlStates, styleColorOptions));
         context.fillEllipse(innerCircleRect);
+
+#if PLATFORM(MAC)
+    if (Theme::singleton().userPrefersContrast())
+        drawHighContrastOutline(context, boundingPath, box.styleColorOptions());
+#endif
     } else if (!isVision) {
         const auto borderColor = checkboxRadioBorderColorForVectorBasedControls(controlStates, styleColorOptions);
         const auto borderThickness = checkboxRadioBorderWidthForVectorBasedControls * usedZoom;
