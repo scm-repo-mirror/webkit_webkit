@@ -1553,8 +1553,7 @@ std::unique_ptr<RenderStyle> TreeResolver::PositionOptions::currentOption() cons
     ASSERT(optionStyles[index].style);
 
     auto newStyle = RenderStyle::clonePtr(*optionStyles[index].style);
-    if (optionStyles[index].fallbackIndex)
-        newStyle->setLastSuccessfulPositionTryFallbackIndex(*optionStyles[index].fallbackIndex);
+    newStyle->setLastSuccessfulPositionTryFallbackIndex(optionStyles[index].fallbackIndex);
 
     return newStyle;
 }
