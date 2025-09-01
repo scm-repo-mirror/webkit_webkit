@@ -951,6 +951,7 @@ static bool rareInheritedDataChangeRequiresLayout(const StyleRareInheritedData& 
         || first.hyphenationString != second.hyphenationString
         || first.rubyPosition != second.rubyPosition
         || first.rubyAlign != second.rubyAlign
+        || first.rubyOverhang != second.rubyOverhang
         || first.textCombine != second.textCombine
         || first.textEmphasisStyle != second.textEmphasisStyle
         || first.textEmphasisPosition != second.textEmphasisPosition
