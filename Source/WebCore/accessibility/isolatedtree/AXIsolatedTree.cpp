@@ -1585,9 +1585,24 @@ void AXIsolatedTree::processQueuedNodeUpdates()
         updateRelations(cache->relations());
 
     if (m_mostRecentlyPaintedTextIsDirty) {
-        Locker lock { m_changeLogLock };
-        m_pendingMostRecentlyPaintedText = cache->mostRecentlyPaintedText();
         m_mostRecentlyPaintedTextIsDirty = false;
+        // Resolving `mostRecentlyPaintedText()` can result in this sequence:
+        //   1. AXObjectCache::getOrCreate, which calls AccessibilityObject::recomputeIsIgnored
+        //   2. If the ignored state changes, AXObjectCache::objectBecameUnignored may be called
+        //   3. AXIsolatedTree::treeForPageID() will be called to try to inform the isolated tree
+        //      of this change, which requires taking AXTreeStore::s_storeLock.
+        //
+        // If we (the main-thread) held the m_changeLogLock when the above sequence happened, we would deadlock
+        // if the accessibility thread was simultaneously running applyPendingChangesForAllIsolatedTrees(), which
+        // holds the s_storeLock for the length of the function. The main-thread would be waiting on the storeLock,
+        // and the accessibility thread would be waiting on the m_changeLogLock to run AXIsolatedTree::applyPendingChanges()
+        // while holding the s_storeLock. Thus, a deadlock.
+        //
+        // So it's crucial to resolve the mostRecentlyPaintedText structure before the m_changeLogLock critical section,
+        // and only perform a move or copy while in the critical section to avoid a deadlock.
+        auto mostRecentlyPaintedText = cache->mostRecentlyPaintedText();
+        Locker lock { m_changeLogLock };
+        m_pendingMostRecentlyPaintedText = WTFMove(mostRecentlyPaintedText);
     }
 
     queueRemovalsAndUnresolvedChanges();
