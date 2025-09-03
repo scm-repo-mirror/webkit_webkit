@@ -1,4 +1,21 @@
 =================
+WPE WebKit 2.48.6
+=================
+
+What's new in WPE WebKit 2.48.6?
+
+  - Fix emojis incorrectly rendered in their text variant.
+  - Add support for font collection / fragment identifiers.
+  - Allow using a system-wide PulseAudio daemon from the Bubblewrap sandbox.
+  - Disable the `MediaSession` API on Android.
+  - Fix web process deadlock on exit.
+  - Fix stuttering when playing WebP animations.
+  - Fix CSS animations with cubic-bezier timing function.
+  - Do not start the MemoryPressureMonitor if it's disabled.
+  - Fix several crashes and rendering issues.
+
+
+=================
 WPE WebKit 2.48.5
 =================
 
