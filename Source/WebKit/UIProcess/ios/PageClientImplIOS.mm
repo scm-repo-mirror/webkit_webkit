@@ -264,6 +264,11 @@ UIView *PageClientImpl::createVisibilityPropagationView()
 {
     return [contentView() _createVisibilityPropagationView];
 }
+
+void PageClientImpl::removeVisibilityPropagationView(UIView *view)
+{
+    [contentView() _removeVisibilityPropagationView:view];
+}
 #endif
 #endif // HAVE(VISIBILITY_PROPAGATION_VIEW)
 
