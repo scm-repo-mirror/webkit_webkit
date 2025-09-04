@@ -4484,6 +4484,7 @@ http/tests/iframe-memory-monitor/media-video-autoplay-in-frames.html [ Skip ]
 dom/xsl/lockdown-mode [ Skip ]
 http/tests/lockdown-mode [ Skip ]
 js/dom/lockdown-mode [ Skip ]
+fast/speechsynthesis/lockdown-mode [ Skip ]
 
 # Now that partial fonts are working, two characters previously rendered as a square are now showing correctly, which makes the test fail. 
 # Probably the test should be updated.
