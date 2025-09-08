@@ -259,6 +259,7 @@ protected:
     macro(PressDidSucceed) \
     macro(PressDidFail) \
     macro(PressedStateChanged) \
+    macro(RadioGroupMembershipChanged) \
     macro(ReadOnlyStatusChanged) \
     macro(RequiredStatusChanged) \
     macro(SortDirectionChanged) \
@@ -408,6 +409,7 @@ public:
     void onFocusChange(Element* oldElement, Element* newElement);
     void onInertOrVisibilityChange(RenderElement&);
     void onPopoverToggle(const HTMLElement&);
+    void onRadioGroupMembershipChanged(HTMLElement&);
     void onScrollbarFrameRectChange(const Scrollbar&);
     void onSelectedChanged(Element&);
     void onSelectedTextChanged(const VisiblePositionRange&, AccessibilityObject* = nullptr);
