@@ -1415,7 +1415,7 @@ bool AnchorPositionEvaluator::isDefaultAnchorInvisibleOrClippedByInterveningBoxe
 
     auto anchorRect = anchorBox.localToAbsoluteQuad(FloatQuad { localAnchorRect }).boundingBox();
 
-    for (auto* anchorAncestor = anchorBox.parent(); anchorAncestor && anchorAncestor != anchoredContainingBlock; anchorAncestor = anchorAncestor->parent()) {
+    for (auto* anchorAncestor = anchorBox.container(); anchorAncestor && anchorAncestor != anchoredContainingBlock; anchorAncestor = anchorAncestor->container()) {
         if (!anchorAncestor->hasNonVisibleOverflow())
             continue;
         auto* clipAncestor = dynamicDowncast<RenderBox>(*anchorAncestor);
