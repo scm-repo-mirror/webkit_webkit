@@ -1072,11 +1072,6 @@ static void changeContentOffsetBoundedInValidRange(UIScrollView *scrollView, Web
     BOOL shouldUpdateContentOffsetForFittingScale = !shouldUpdateZoomScale && !CGSizeEqualToSize(oldContentSize, newContentSize) && (oldContentSize.height > 0) && self._isDisplayingPDF;
 
     if (shouldUpdateZoomScale || shouldUpdateContentOffsetForFittingScale) {
-        if (shouldUpdateZoomScale) {
-            LOG_WITH_STREAM(VisibleRects, stream << " updating scroll view with pageScaleFactor " << pageScaleFactor);
-            [_scrollView setZoomScale:pageScaleFactor];
-        }
-
         UIEdgeInsets contentInsets = [_scrollView adjustedContentInset];
         CGPoint minimumContentOffset = CGPointMake(-contentInsets.left, -contentInsets.top);
         CGPoint contentOffset = [_scrollView contentOffset];
@@ -1093,6 +1088,11 @@ static void changeContentOffsetBoundedInValidRange(UIScrollView *scrollView, Web
             contentOffsetX = minimumContentOffset.x + ((contentOffsetX - minimumContentOffset.x) * scaleRatio);
 
         CGFloat contentOffsetY = minimumContentOffset.y + ((contentOffset.y - minimumContentOffset.y) * scaleRatio);
+
+        if (shouldUpdateZoomScale) {
+            LOG_WITH_STREAM(VisibleRects, stream << " updating scroll view with pageScaleFactor " << pageScaleFactor);
+            [_scrollView setZoomScale:pageScaleFactor];
+        }
 
         changeContentOffsetBoundedInValidRange(_scrollView.get(), CGPointMake(contentOffsetX, contentOffsetY));
     }
