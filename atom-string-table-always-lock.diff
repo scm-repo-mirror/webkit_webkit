@@ -1,0 +1,30 @@
+diff --git a/Source/WTF/wtf/text/AtomStringImpl.cpp b/Source/WTF/wtf/text/AtomStringImpl.cpp
+index 3fa610afb52c..3d223194253d 100644
+--- a/Source/WTF/wtf/text/AtomStringImpl.cpp
++++ b/Source/WTF/wtf/text/AtomStringImpl.cpp
+@@ -37,8 +37,6 @@ namespace WTF {
+ 
+ using namespace Unicode;
+ 
+-#if USE(WEB_THREAD)
+-
+ class AtomStringTableLocker : public Locker<Lock> {
+     WTF_MAKE_NONCOPYABLE(AtomStringTableLocker);
+ 
+@@ -52,16 +50,6 @@ public:
+ 
+ Lock AtomStringTableLocker::s_stringTableLock;
+ 
+-#else
+-
+-class AtomStringTableLocker {
+-    WTF_MAKE_NONCOPYABLE(AtomStringTableLocker);
+-public:
+-    AtomStringTableLocker() { }
+-};
+-
+-#endif // USE(WEB_THREAD)
+-
+ using StringTableImpl = AtomStringTable::StringTableImpl;
+ 
+ static ALWAYS_INLINE StringTableImpl& stringTable()
