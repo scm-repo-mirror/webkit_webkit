@@ -38,6 +38,7 @@ public:
     GStreamerVideoCapturer(const char* sourceFactory, CaptureDevice::DeviceType);
     ~GStreamerVideoCapturer() = default;
 
+    void tearDown(bool disconnectSignals) final;
     GstElement* createSource() final;
     GstElement* createConverter() final;
     const char* name() final { return "Video"; }

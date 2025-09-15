@@ -59,7 +59,7 @@ public:
     void unregisterCapturer(const GStreamerCapturer&);
     void stopCapturing(const String& persistentId);
 
-    void teardown();
+    virtual void teardown();
 
 private:
     void addDevice(GRefPtr<GstDevice>&&);
@@ -100,6 +100,11 @@ public:
     void deref() const final { }
 
     static VideoCaptureFactory& videoFactory();
+
+    void teardown() final
+    {
+        GStreamerCaptureDeviceManager::teardown();
+    }
 
 private:
     GStreamerVideoCaptureDeviceManager() = default;
