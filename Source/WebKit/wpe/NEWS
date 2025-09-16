@@ -1,4 +1,15 @@
 =================
+WPE WebKit 2.48.7
+=================
+
+What's new in WPE WebKit 2.48.7?
+
+  - When using WPEPlatform, the WPE_SETTING_TOPLEVEL_DEFAULT_SIZE is
+    now applied to every toplevel.
+  - Fix a number of GStreamer memory leaks.
+  - Fix several crashes and rendering issues.
+
+=================
 WPE WebKit 2.48.6
 =================
 
