@@ -3065,12 +3065,14 @@ void AXObjectCache::handleAttributeChange(Element* element, const QualifiedName&
         postNotification(element, AXNotification::DisabledStateChanged);
     else if (attrName == forAttr) {
         if (RefPtr label = dynamicDowncast<HTMLLabelElement>(element)) {
-            updateLabelFor(*label);
+            bool updatedLabelFor = updateLabelFor(*label);
 
-            if (RefPtr oldControl = element->treeScope().elementByIdResolvingReferenceTarget(oldValue))
-                postNotification(oldControl.get(), AXNotification::TextChanged);
-            if (RefPtr newControl = element->treeScope().elementByIdResolvingReferenceTarget(newValue))
-                postNotification(newControl.get(), AXNotification::TextChanged);
+            if (updatedLabelFor) {
+                if (RefPtr oldControl = element->treeScope().elementByIdResolvingReferenceTarget(oldValue))
+                    postNotification(oldControl.get(), AXNotification::TextChanged);
+                if (RefPtr newControl = element->treeScope().elementByIdResolvingReferenceTarget(newValue))
+                    postNotification(newControl.get(), AXNotification::TextChanged);
+            }
         }
     } else if (attrName == requiredAttr)
         postNotification(element, AXNotification::RequiredStatusChanged);
@@ -3297,6 +3299,13 @@ void AXObjectCache::handleAttributeChange(Element* element, const QualifiedName&
         handleInputTypeChanged(*element);
 }
 
+static bool hasAnyARIALabelling(Element& element)
+{
+    return element.hasAttributeWithoutSynchronization(aria_labelAttr)
+        || element.hasAttributeWithoutSynchronization(aria_labelledbyAttr)
+        || element.hasAttributeWithoutSynchronization(aria_labeledbyAttr);
+}
+
 void AXObjectCache::handleLabelChanged(AccessibilityObject* object)
 {
     AXTRACE("AXObjectCache::handleLabelChanged"_s);
@@ -3304,9 +3313,11 @@ void AXObjectCache::handleLabelChanged(AccessibilityObject* object)
     if (!object)
         return;
 
+    bool updatedLabelFor = false;
     if (RefPtr label = dynamicDowncast<HTMLLabelElement>(object->element()))
-        updateLabelFor(*label);
-    else {
+        updatedLabelFor = updateLabelFor(*label);
+
+    if (!updatedLabelFor) {
         auto labeledObjects = object->labelForObjects();
         for (auto& labeledObject : labeledObjects) {
             updateLabeledBy(RefPtr { labeledObject->element() }.get());
@@ -3317,10 +3328,16 @@ void AXObjectCache::handleLabelChanged(AccessibilityObject* object)
     postNotification(object, protectedDocument().get(), AXNotification::LabelChanged);
 }
 
-void AXObjectCache::updateLabelFor(HTMLLabelElement& label)
+bool AXObjectCache::updateLabelFor(HTMLLabelElement& label)
 {
+    if (RefPtr control = Accessibility::controlForLabelElement(label)) {
+        if (hasAnyARIALabelling(*control))
+            return false;
+    }
+
     removeRelation(label, AXRelation::LabelFor);
     addLabelForRelation(label);
+    return true;
 }
 
 void AXObjectCache::updateLabeledBy(Element* element)
@@ -5565,9 +5582,7 @@ bool AXObjectCache::addRelation(Element& origin, Element& target, AXRelation rel
 
     if (relation == AXRelation::LabelFor) {
         // Add a LabelFor relation if the target doesn't have an ARIA label which should take precedence.
-        if (target.hasAttributeWithoutSynchronization(aria_labelAttr)
-            || target.hasAttributeWithoutSynchronization(aria_labelledbyAttr)
-            || target.hasAttributeWithoutSynchronization(aria_labeledbyAttr))
+        if (hasAnyARIALabelling(target))
             return false;
     }
 
