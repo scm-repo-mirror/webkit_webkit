@@ -1357,3 +1357,5 @@ webkit.org/b/292841 fullscreen/exit-full-screen-video-crash.html [ Timeout ]
 webkit.org/b/254518 imported/w3c/web-platform-tests/html/semantics/embedded-content/media-elements/autoplay-allowed-by-feature-policy.https.sub.html [ Crash Failure Pass ]
 
 webkit.org/b/267992 imported/w3c/web-platform-tests/html/anonymous-iframe/initial-empty-document.tentative.https.window.html [ Crash Pass ]
+
+media/adopt-node-after-showing-picker-crash.html [ Skip ]
