@@ -266,6 +266,8 @@ public:
 
     bool needsWebKitMediaTextTrackDisplayQuirk() const;
 
+    bool needsTextInputBoxSizingBorderBoxQuirk() const;
+
     bool shouldSupportHoverMediaQueries() const;
 
     bool shouldRewriteMediaRangeRequestForURL(const URL&) const;
