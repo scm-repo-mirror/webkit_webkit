@@ -1,4 +1,13 @@
 ================
+WebKitGTK 2.48.7
+================
+
+What's new in WebKitGTK 2.48.7?
+
+  - Fix a number of GStreamer memory leaks.
+  - Fix several crashes and rendering issues.
+
+================
 WebKitGTK 2.48.6
 ================
 
