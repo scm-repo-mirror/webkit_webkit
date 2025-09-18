@@ -225,8 +225,7 @@ bool doesGC(Graph& graph, Node* node)
     case CheckBadValue:
     case BottomValue:
     case PhantomNewObject:
-    case PhantomNewArrayWithButterfly:
-    case PhantomNewButterflyWithSize:
+    case PhantomNewArrayWithConstantSize:
     case PhantomNewFunction:
     case PhantomNewGeneratorFunction:
     case PhantomNewAsyncFunction:
@@ -413,9 +412,8 @@ bool doesGC(Graph& graph, Node* node)
     case NewArrayWithSpread:
     case NewInternalFieldObject:
     case Spread:
-    case NewButterflyWithSize:
     case NewArrayWithSize:
-    case NewArrayWithButterfly:
+    case NewArrayWithConstantSize:
     case NewArrayWithSpecies:
     case NewArrayWithSizeAndStructure:
     case NewArrayBuffer:
@@ -441,7 +439,7 @@ bool doesGC(Graph& graph, Node* node)
     case EnumeratorNextUpdatePropertyName:
     case EnumeratorNextUpdateIndexAndMode:
     case MaterializeNewObject:
-    case MaterializeNewButterflyWithSize:
+    case MaterializeNewArrayWithConstantSize:
     case MaterializeNewInternalFieldObject:
     case MaterializeCreateActivation:
     case SetFunctionName:
