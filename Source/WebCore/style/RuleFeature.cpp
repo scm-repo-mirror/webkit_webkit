@@ -60,6 +60,7 @@ static bool isSiblingOrSubject(MatchElement matchElement)
     case MatchElement::HasSiblingDescendant:
     case MatchElement::HasChildParent:
     case MatchElement::HasChildAncestor:
+    case MatchElement::HasDescendantParent:
     case MatchElement::HasNonSubject:
     case MatchElement::HasScopeBreaking:
         return false;
@@ -108,6 +109,7 @@ static bool isScopeBreaking(MatchElement matchElement)
     case MatchElement::HasSiblingDescendant:
     case MatchElement::HasChildParent:
     case MatchElement::HasChildAncestor:
+    case MatchElement::HasDescendantParent:
     case MatchElement::HasNonSubject:
         return false;
     }
@@ -236,6 +238,7 @@ MatchElement computeHasPseudoClassMatchElement(const CSSSelector& hasSelector)
     case MatchElement::HasAnySibling:
     case MatchElement::HasChildParent:
     case MatchElement::HasChildAncestor:
+    case MatchElement::HasDescendantParent:
     case MatchElement::HasNonSubject:
     case MatchElement::HasScopeBreaking:
     case MatchElement::Host:
@@ -274,6 +277,12 @@ static MatchElement computeSubSelectorMatchElement(MatchElement matchElement, co
                 if (matchElement == MatchElement::Ancestor)
                     return MatchElement::HasChildAncestor;
             }
+
+            if (hasSelectorMatchElement == MatchElement::HasDescendant) {
+                if (matchElement == MatchElement::Parent)
+                    return MatchElement::HasDescendantParent;
+            }
+
 
             if (matchElement != MatchElement::Subject)
                 return MatchElement::HasNonSubject;
