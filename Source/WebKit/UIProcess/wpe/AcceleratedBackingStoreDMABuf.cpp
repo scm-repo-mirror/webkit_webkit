@@ -52,7 +52,10 @@ Ref<AcceleratedBackingStoreDMABuf> AcceleratedBackingStoreDMABuf::create(WebPage
 AcceleratedBackingStoreDMABuf::AcceleratedBackingStoreDMABuf(WebPageProxy& webPage, WPEView* view)
     : m_webPage(webPage)
     , m_wpeView(view)
-    , m_fenceMonitor([this] { renderPendingBuffer(); })
+    , m_fenceMonitor([this] {
+        if (m_webPage && m_pendingBuffer)
+            renderPendingBuffer();
+    })
     , m_legacyMainFrameProcess(webPage.legacyMainFrameProcess())
 {
     g_signal_connect(m_wpeView.get(), "buffer-rendered", G_CALLBACK(+[](WPEView*, WPEBuffer*, gpointer userData) {
