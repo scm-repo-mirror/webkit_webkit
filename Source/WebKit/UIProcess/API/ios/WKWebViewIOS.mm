@@ -1539,6 +1539,20 @@ static void configureScrollViewWithOverlayRegionsIDs(RetainPtr<WKBaseScrollView>
     configureScrollViewWithOverlayRegionsIDs(overlayRegionScrollView, layerTreeHost, overlayRegionsIDs, candidatesMap, [self _isInStableState:overlayRegionScrollView.get()]);
 }
 
+- (void)_updateOverlayRegionsForCustomContentView
+{
+    if (!_page || !_page->preferences().overlayRegionsEnabled())
+        return;
+
+    if (![self _scrollViewCanHaveOverlayRegions:_scrollView.get()]) {
+        [_scrollView _updateOverlayRegionsBehavior:NO];
+        return;
+    }
+
+    [_scrollView _updateOverlayRegionsBehavior:YES];
+    [_scrollView _updateOverlayRegionRects: { }];
+}
+
 - (void)_resetOverlayRegions
 {
     if (!_page)
