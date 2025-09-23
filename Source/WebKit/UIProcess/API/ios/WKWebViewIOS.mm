@@ -1550,7 +1550,7 @@ static void configureScrollViewWithOverlayRegionsIDs(RetainPtr<WKBaseScrollView>
     }
 
     [_scrollView _updateOverlayRegionsBehavior:YES];
-    [_scrollView _updateOverlayRegionRects: { }];
+    [_scrollView _updateOverlayRegionRects: { } whileStable:YES];
 }
 
 - (void)_resetOverlayRegions

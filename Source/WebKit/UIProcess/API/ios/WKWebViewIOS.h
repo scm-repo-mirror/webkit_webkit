@@ -94,6 +94,7 @@ enum class TapHandlingResult : uint8_t;
 - (void)_didFinishLoadingDataForCustomContentProviderWithSuggestedFilename:(const WTF::String&)suggestedFilename data:(NSData *)data;
 
 #if ENABLE(OVERLAY_REGIONS_IN_EVENT_REGION)
+- (void)_updateOverlayRegionsForCustomContentView;
 - (void)_updateOverlayRegions;
 #endif
 
