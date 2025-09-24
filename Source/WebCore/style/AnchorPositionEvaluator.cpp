@@ -407,6 +407,9 @@ static LayoutSize offsetFromAncestorContainer(const RenderElement& descendantCon
     LayoutSize offset;
     LayoutPoint referencePoint;
     CheckedPtr currentContainer = &descendantContainer;
+    CheckedPtr maxContainer = &ancestorContainer;
+    if (CheckedPtr ancestorInline = dynamicDowncast<RenderInline>(&ancestorContainer))
+        maxContainer = ancestorInline->containingBlock();
     do {
         CheckedPtr nextContainer = currentContainer->container();
         ASSERT(nextContainer); // This means we reached the top without finding container.
@@ -423,7 +426,18 @@ static LayoutSize offsetFromAncestorContainer(const RenderElement& descendantCon
         offset += currentOffset;
         referencePoint.move(currentOffset);
         currentContainer = WTFMove(nextContainer);
-    } while (currentContainer != &ancestorContainer);
+    } while (currentContainer != maxContainer);
+
+    if (CheckedPtr descendantInline = dynamicDowncast<RenderInline>(&descendantContainer)) {
+        // RenderInline objects do not automatically account for their offset above,
+        // so we incorporate this offset here.
+        offset += toLayoutSize(descendantInline->linesBoundingBox().location());
+    }
+    if (descendantContainer.containingBlock() == ancestorContainer.containingBlock()) {
+        // Account for 'position: relative' inline containing blocks by shifting back down into them.
+        if (CheckedPtr ancestorInline = dynamicDowncast<RenderInline>(&ancestorContainer))
+            offset -= toLayoutSize(ancestorInline->firstInlineBoxTopLeft()); // FIXME: Handle RTL.
+    }
 
     if (auto ancestorBox = dynamicDowncast<RenderBox>(ancestorContainer)) // Zero out containing block scroll position.
         offset += toLayoutSize(ancestorBox->constrainedScrollPosition());
@@ -487,11 +501,6 @@ LayoutRect AnchorPositionEvaluator::computeAnchorRectRelativeToContainingBlock(C
     auto anchorWidth = anchorBox->offsetWidth();
     auto anchorHeight = anchorBox->offsetHeight();
     auto anchorLocation = LayoutPoint { offsetFromAncestorContainer(anchorBox, containingBlock) };
-    if (CheckedPtr anchorRenderInline = dynamicDowncast<RenderInline>(&anchorBox.get())) {
-        // RenderInline objects do not automatically account for their offset in offsetFromAncestorContainer,
-        // so we incorporate this offset here.
-        anchorLocation.moveBy(anchorRenderInline->linesBoundingBox().location());
-    }
 
     if (&containingBlock == &containingBlock.view() && anchoredBox.isFixedPositioned()) {
         // Handle fixed positioning x scrolling anchor.
@@ -674,7 +683,7 @@ static LayoutUnit computeInsetValue(CSSPropertyID insetPropertyID, CheckedRef<co
     if (constraints.startIsBefore() == isFlipped)
         anchorPercentage = 1 - anchorPercentage;
 
-    CheckedPtr containingBlock = anchorPositionedRenderer->containingBlock();
+    CheckedPtr containingBlock = anchorPositionedRenderer->container();
     ASSERT(containingBlock);
     auto anchorRect = AnchorPositionEvaluator::computeAnchorRectRelativeToContainingBlock(anchorBox, *containingBlock, anchorPositionedRenderer.get());
     auto anchorRange = constraints.extractRange(anchorRect);
