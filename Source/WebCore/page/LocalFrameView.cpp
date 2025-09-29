@@ -2304,7 +2304,6 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
         NoLayer,
         NotFixedOrSticky,
         IsHiddenOrTransparent,
-        IsScrollable,
         TooSmall,
         TooLarge,
         IsViewportSizedCandidate,
@@ -2326,9 +2325,6 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
         if (CheckedPtr box = dynamicDowncast<RenderBox>(renderer)) {
             if (isHiddenOrNearlyTransparent(*box))
                 return IsHiddenOrTransparent;
-
-            if (box->canBeScrolledAndHasScrollableArea())
-                return IsScrollable;
 
             isProbablyDimmingContainer = [&] {
                 if (lengthOnSide == ViewportComparison::Smaller)
@@ -2396,20 +2392,21 @@ std::pair<FixedContainerEdges, WeakElementEdges> LocalFrameView::fixedContainerE
         bool foundBackdropFilter = false;
         bool hitInvisiblePointerEventsNoneContainer = false;
         for (CheckedRef ancestor : lineageOfType<RenderElement>(*renderer)) {
-            if (ancestor->hasBackdropFilter())
-                foundBackdropFilter = true;
-            else if (auto color = primaryBackgroundColorForRenderer(side, ancestor); color.isVisible()) {
-                if (!primaryBackgroundColor.isVisible())
-                    primaryBackgroundColor = WTFMove(color);
-                else if (primaryBackgroundColor != color)
-                    hasMultipleBackgroundColors = true;
+            auto candidateType = containerEdgeCandidateResult(side, ancestor);
+            if (candidateType != IsHiddenOrTransparent) {
+                if (ancestor->hasBackdropFilter())
+                    foundBackdropFilter = true;
+                else if (auto color = primaryBackgroundColorForRenderer(side, ancestor); color.isVisible()) {
+                    if (!primaryBackgroundColor.isVisible())
+                        primaryBackgroundColor = WTFMove(color);
+                    else if (primaryBackgroundColor != color)
+                        hasMultipleBackgroundColors = true;
+                }
             }
 
-            auto candidateType = containerEdgeCandidateResult(side, ancestor);
             switch (candidateType) {
             case NoLayer:
             case NotFixedOrSticky:
-            case IsScrollable:
             case TooSmall:
                 break;
             case TooLarge:
