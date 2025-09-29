@@ -1313,14 +1313,22 @@ auto AnchorPositionEvaluator::makeAnchorPositionedForAnchorMap(AnchorPositionedT
 
 bool AnchorPositionEvaluator::isAnchorPositioned(const RenderStyle& style)
 {
-    if (!style.hasOutOfFlowPosition())
+    return isStyleTimeAnchorPositioned(style) || isLayoutTimeAnchorPositioned(style);
+}
+
+bool AnchorPositionEvaluator::isStyleTimeAnchorPositioned(const RenderStyle& style)
+{
+    if (!generatesBox(style) || !style.hasOutOfFlowPosition())
         return false;
 
-    return isLayoutTimeAnchorPositioned(style) || style.usesAnchorFunctions();
+    return style.usesAnchorFunctions();
 }
 
 bool AnchorPositionEvaluator::isLayoutTimeAnchorPositioned(const RenderStyle& style)
 {
+    if (!generatesBox(style) || !style.hasOutOfFlowPosition())
+        return false;
+
     if (style.positionArea())
         return true;
 
