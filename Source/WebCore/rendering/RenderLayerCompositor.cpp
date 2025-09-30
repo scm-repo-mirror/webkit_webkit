@@ -1018,6 +1018,10 @@ void RenderLayerCompositor::updateEventRegionsRecursive(RenderLayer& layer)
 
 void RenderLayerCompositor::updateEventRegions()
 {
+    bool isProhibitedFrame = m_renderView.document().ownerElement() && !m_renderView.document().ownerElement()->renderer();
+    if (isProhibitedFrame)
+        return;
+
     updateEventRegionsRecursive(*m_renderView.layer());
     m_renderView.setNeedsEventRegionUpdateForNonCompositedFrame(false);
 }
