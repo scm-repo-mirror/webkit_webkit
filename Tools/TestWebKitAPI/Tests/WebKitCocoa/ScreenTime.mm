@@ -69,7 +69,7 @@ static RetainPtr<TestWKWebView> webViewForScreenTimeTests(WKWebViewConfiguration
 
 static std::unique_ptr<InstanceMethodSwizzler> swizzleEnforcesChildRestrictions(bool& done, bool enforces = YES)
 {
-    return WTF::makeUnique<InstanceMethodSwizzler>(PAL::getSTScreenTimeConfigurationClassSingleton(), @selector(enforcesChildRestrictions), imp_implementationWithBlock(^BOOL {
+    return WTF::makeUnique<InstanceMethodSwizzler>(PAL::getSTScreenTimeConfigurationClass(), @selector(enforcesChildRestrictions), imp_implementationWithBlock(^BOOL {
         done = true;
         return enforces;
     }));
