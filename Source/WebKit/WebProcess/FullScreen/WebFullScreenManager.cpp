@@ -39,6 +39,7 @@
 #include <WebCore/Color.h>
 #include <WebCore/ContainerNodeInlines.h>
 #include <WebCore/DocumentFullscreen.h>
+#include <WebCore/Element.h>
 #include <WebCore/EventNames.h>
 #include <WebCore/HTMLVideoElement.h>
 #include <WebCore/JSDOMPromiseDeferred.h>
