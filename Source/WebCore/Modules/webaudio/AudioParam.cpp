@@ -36,7 +36,6 @@
 #include "Logging.h"
 #include "VectorMath.h"
 #include <algorithm>
-#include <wtf/Lock.h>
 #include <wtf/MathExtras.h>
 #include <wtf/StdLibExtras.h>
 
