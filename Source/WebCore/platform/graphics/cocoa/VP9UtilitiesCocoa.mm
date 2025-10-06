@@ -186,7 +186,12 @@ bool vp9HardwareDecoderAvailable()
     if (auto disabledForTesting = VP9TestingOverrides::singleton().hardwareDecoderDisabled())
         return !*disabledForTesting;
 
-    return canLoad_VideoToolbox_VTIsHardwareDecodeSupported() && VTIsHardwareDecodeSupported(kCMVideoCodecType_VP9);
+    static dispatch_once_t onceToken;
+    static bool decoderAvailable;
+    dispatch_once(&onceToken, ^{
+        decoderAvailable = canLoad_VideoToolbox_VTIsHardwareDecodeSupported() && VTIsHardwareDecodeSupported(kCMVideoCodecType_VP9);
+    });
+    return decoderAvailable;
 }
 
 static bool isVP9CodecConfigurationRecordSupported(const VPCodecConfigurationRecord& codecConfiguration)
