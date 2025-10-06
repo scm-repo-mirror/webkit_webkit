@@ -3463,6 +3463,9 @@ void Document::didBecomeCurrentDocumentInFrame()
         if (m_timelinesController)
             m_timelinesController->resumeAnimations();
     }
+
+    if (isTopDocument() && m_quirks)
+        m_quirks->determineRelevantQuirks();
 }
 
 void Document::frameDestroyed()
