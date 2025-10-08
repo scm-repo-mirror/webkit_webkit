@@ -353,6 +353,7 @@ interface UIScriptController {
     readonly attribute object inputViewBounds;
 
     undefined setKeyboardInputModeIdentifier(DOMString identifier);
+    undefined setFocusStartsInputSessionPolicy(DOMString policy);
 
     undefined replaceTextAtRange(DOMString text, long location, long length);
 
