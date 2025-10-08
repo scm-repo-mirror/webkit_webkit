@@ -575,6 +575,8 @@ HTMLMediaElement::HTMLMediaElement(const QualifiedName& tagName, Document& docum
     , m_explicitlyMuted(false)
     , m_paused(true)
     , m_seeking(false)
+    , m_buffering(false)
+    , m_stalled(false)
     , m_seekRequested(false)
     , m_wasPlayingBeforeSeeking(false)
     , m_sentStalledEvent(false)
