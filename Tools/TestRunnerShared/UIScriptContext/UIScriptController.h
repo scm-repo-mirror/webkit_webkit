@@ -263,7 +263,6 @@ public:
     virtual void setHardwareKeyboardAttached(bool) { }
 
     virtual void setKeyboardInputModeIdentifier(JSStringRef) { notImplemented(); }
-    virtual void setFocusStartsInputSessionPolicy(JSStringRef) { notImplemented(); }
 
     virtual void replaceTextAtRange(JSStringRef, int, int) { notImplemented(); }
 
