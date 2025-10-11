@@ -76,7 +76,7 @@ bool Navigation::canGoBack() const
     if (hasEntriesAndEventsDisabled())
         return false;
     ASSERT(m_currentEntryIndex);
-    if (!*m_currentEntryIndex)
+    if (!m_currentEntryIndex || !*m_currentEntryIndex)
         return false;
     return true;
 }
@@ -87,7 +87,7 @@ bool Navigation::canGoForward() const
     if (hasEntriesAndEventsDisabled())
         return false;
     ASSERT(m_currentEntryIndex);
-    if (*m_currentEntryIndex == m_entries.size() - 1)
+    if (!m_currentEntryIndex || *m_currentEntryIndex == m_entries.size() - 1)
         return false;
     return true;
 }
