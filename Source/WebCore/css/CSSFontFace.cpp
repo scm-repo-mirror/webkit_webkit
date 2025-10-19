@@ -350,7 +350,11 @@ void CSSFontFace::setDisplay(CSSValue& loadingBehaviorValue)
 
 String CSSFontFace::family() const
 {
-    return properties().getPropertyValue(CSSPropertyFontFamily);
+    RefPtr value = dynamicDowncast<CSSPrimitiveValue>(properties().getPropertyCSSValue(CSSPropertyFontFamily));
+    if (!value)
+        return { };
+    ASSERT(value->isFontFamily());
+    return value->stringValue();
 }
 
 String CSSFontFace::style() const
