@@ -1983,6 +1983,7 @@ PartialResult WARN_UNUSED_RETURN BBQJIT::addArraySet(uint32_t typeIndex, Express
         ASSERT(arrayref.asI64() == JSValue::encode(jsNull()));
 
         LOG_INSTRUCTION("ArraySet", typeIndex, arrayref, index, value);
+        consume(index);
         consume(value);
         emitThrowException(ExceptionType::NullArraySet);
         return { };
