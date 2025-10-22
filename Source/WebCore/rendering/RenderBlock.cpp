@@ -420,6 +420,10 @@ bool RenderBlock::isSelfCollapsingBlock() const
     // (c) have border/padding,
     // (d) have a min-height
     // (e) have specified that one of our margins can't collapse using a CSS extension
+
+    if (isOutOfFlowPositioned())
+        return false;
+
     if (logicalHeight() > 0
         || isRenderTable() || borderAndPaddingLogicalHeight()
         || style().logicalMinHeight().isPositive())
