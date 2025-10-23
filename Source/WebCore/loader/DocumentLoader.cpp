@@ -2247,9 +2247,8 @@ void DocumentLoader::loadMainResource(ResourceRequest&& request)
         return !(flags.contains(SandboxFlag::Origin)) && !(flags.contains(SandboxFlag::Scripts));
     };
 
-    auto effectiveSandboxFlags = m_frame->effectiveSandboxFlags();
     RefPtr frame = m_frame.get();
-    if (!m_canUseServiceWorkers || !isSandboxingAllowingServiceWorkerFetchHandling(effectiveSandboxFlags))
+    if (!m_canUseServiceWorkers || !isSandboxingAllowingServiceWorkerFetchHandling(frame->effectiveSandboxFlags()))
         mainResourceLoadOptions.serviceWorkersMode = ServiceWorkersMode::None;
     else {
         // The main navigation load will trigger the registration of the client.
@@ -2263,8 +2262,6 @@ void DocumentLoader::loadMainResource(ResourceRequest&& request)
         scriptExecutionContextIdentifierToLoaderMap().add(*m_resultingClientId, this);
         mainResourceLoadOptions.resultingClientIdentifier = m_resultingClientId->object();
     }
-
-    request.setAllowCookies(!effectiveSandboxFlags.contains(SandboxFlag::Origin));
 
     CachedResourceRequest mainResourceRequest(WTFMove(request), mainResourceLoadOptions);
     if (!frame->isMainFrame() && frame->document()) {
