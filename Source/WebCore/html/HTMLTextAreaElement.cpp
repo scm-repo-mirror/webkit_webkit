@@ -341,7 +341,7 @@ void HTMLTextAreaElement::updateValue() const
 
 ValueOrReference<String> HTMLTextAreaElement::value() const
 {
-    if (protectedDocument()->requiresScriptTrackingPrivacyProtection(ScriptTrackingPrivacyCategory::FormControls))
+    if (shouldApplyScriptTrackingPrivacyProtection())
         return emptyString();
     updateValue();
     return m_value;
