@@ -6280,7 +6280,6 @@ RTCEncodedStreamsQuirkEnabled:
     WebKitLegacy:
       default: false
     WebKit:
-      PLATFORM(MAC): true
       default: false
     WebCore:
       default: false
