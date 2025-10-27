@@ -1862,6 +1862,8 @@ most-inline-size
 flip-block
 flip-inline
 flip-start
+flip-x
+flip-y
 // position-area
 self-block-end
 self-block-end-start
