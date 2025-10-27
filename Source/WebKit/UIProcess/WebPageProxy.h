@@ -3031,6 +3031,10 @@ private:
 
     void requestNotificationPermission(const String& originString, CompletionHandler<void(bool allowed)>&&);
 
+#if ENABLE(WEB_ARCHIVE)
+    bool shouldAlwaysPromptForPermission(WebCore::PermissionName) const;
+#endif
+
     void didChangeContentSize(const WebCore::IntSize&);
     void didChangeIntrinsicContentSize(const WebCore::IntSize&);
 
