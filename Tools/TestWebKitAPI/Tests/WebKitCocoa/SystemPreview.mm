@@ -358,7 +358,7 @@ static void testRelARPrompt(void(^loadModel)(TestWKWebView *)) {
             completion(nil);
     });
 
-    Class asvLaunchPreviewClass = getASVLaunchPreviewClass();
+    Class asvLaunchPreviewClass = getASVLaunchPreviewClassSingleton();
     SEL beginSelector = NSSelectorFromString(@"beginPreviewApplicationWithURLs:is3DContent:websiteURL:completion:");
     InstanceMethodSwizzler asvSwizzler { asvLaunchPreviewClass, beginSelector, imp_implementationWithBlock(swizzledASVBeginBlock.get()) };
 #else
