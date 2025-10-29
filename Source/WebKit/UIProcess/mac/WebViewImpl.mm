@@ -3825,7 +3825,7 @@ void WebViewImpl::accessibilityRegisterUIProcessTokens()
     RetainPtr remoteElementToken = [NSAccessibilityRemoteUIElement remoteTokenForLocalUIElement:m_view.get().get()];
     m_remoteAccessibilityTokenGeneratedByUIProcess = remoteElementToken.get();
     RetainPtr remoteWindowToken = [NSAccessibilityRemoteUIElement remoteTokenForLocalUIElement:[m_view.get() window]];
-    m_page->registerUIProcessAccessibilityTokens(span(remoteElementToken.get()), span(remoteWindowToken.get()));
+    m_page->registerUIProcessAccessibilityTokens({ makeVector(remoteElementToken.get()) }, { makeVector(remoteWindowToken.get()) });
 }
 
 id WebViewImpl::accessibilityFocusedUIElement()
