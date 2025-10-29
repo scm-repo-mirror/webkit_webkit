@@ -4552,6 +4552,11 @@ static bool isLockdownModeWarningNeeded()
     // For subclasses to override.
 }
 
+- (void)didEnsurePositionInformationIsUpToDate
+{
+    // For subclasses to override.
+}
+
 - (void)_beginInteractiveObscuredInsetsChange
 {
     ASSERT(!_isChangingObscuredInsetsInteractively);
