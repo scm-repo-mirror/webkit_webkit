@@ -34,6 +34,7 @@
 
 #include "StyleCalculationTree+Copy.h"
 #include "StyleCalculationTree+Evaluation.h"
+#include "StyleZoomPrimitives.h"
 #include <cmath>
 #include <wtf/text/TextStream.h>
 
@@ -54,9 +55,17 @@ CalculationValue::CalculationValue(CSS::Category category, CSS::Range range, Cal
 
 CalculationValue::~CalculationValue() = default;
 
-double CalculationValue::evaluate(double percentResolutionLength) const
+double CalculationValue::evaluate(double percentResolutionLength, const ZoomFactor& usedZoom) const
 {
-    auto result = Calculation::evaluate(m_tree, percentResolutionLength);
+    auto result = Calculation::evaluate(m_tree, percentResolutionLength, usedZoom);
+    if (std::isnan(result))
+        return 0;
+    return std::clamp(result, m_range.min, m_range.max);
+}
+
+double CalculationValue::evaluate(double percentResolutionLength, const ZoomNeeded& zoomNeeded) const
+{
+    auto result = Calculation::evaluate(m_tree, percentResolutionLength, zoomNeeded);
     if (std::isnan(result))
         return 0;
     return std::clamp(result, m_range.min, m_range.max);
