@@ -2577,6 +2577,7 @@ fast/images/hdr-border-image.html [ Skip ]
 fast/images/hdr-pseudo-before-image.html [ Skip ]
 fast/images/hdr-svg-inline-image.html [ Skip ]
 fast/images/hdr-unaccelerated-basic-image.html [ Skip ]
+fast/images/hdr-unaccelerated-image-blur-filter.html [ Skip ]
 
 # Experimental H265 support.
 webrtc/h265.html [ Pass Failure ]
