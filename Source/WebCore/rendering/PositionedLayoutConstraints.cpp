@@ -137,12 +137,8 @@ void PositionedLayoutConstraints::captureInsets()
     }
 
     if (m_defaultAnchorBox) {
-        // If the box uses anchor-center and does have a default anchor box,
-        // any auto insets are set to zero.
-        if (m_insetBefore.isAuto())
-            m_insetBefore = 0_css_px;
-        if (m_insetAfter.isAuto())
-            m_insetAfter = 0_css_px;
+        // If the box uses anchor-center or position-area and does have a default anchor box,
+        // then it doesn't use static positioning.
         m_useStaticPosition = false;
     }
 }
@@ -341,7 +337,7 @@ bool PositionedLayoutConstraints::isEligibleForStaticRangeAlignment(LayoutUnit s
 void PositionedLayoutConstraints::resolvePosition(RenderBox::LogicalExtentComputedValues& computedValues) const
 {
     // Static position should have resolved one of our insets by now.
-    ASSERT(!(m_insetBefore.isAuto() && m_insetAfter.isAuto()));
+    ASSERT(!m_useStaticPosition || !(m_insetBefore.isAuto() && m_insetAfter.isAuto()));
 
     auto usedMarginBefore = marginBeforeValue();
     auto usedMarginAfter = marginAfterValue();
@@ -351,8 +347,9 @@ void PositionedLayoutConstraints::resolvePosition(RenderBox::LogicalExtentComput
         - computedValues.m_extent
         - usedMarginAfter;
 
-    bool hasAutoBeforeInset = m_insetBefore.isAuto();
-    bool hasAutoAfterInset = m_insetAfter.isAuto();
+    bool honorAutoInsets = !m_defaultAnchorBox || m_alignment.isNormal();
+    bool hasAutoBeforeInset = m_insetBefore.isAuto() && honorAutoInsets;
+    bool hasAutoAfterInset = m_insetAfter.isAuto() && honorAutoInsets;
     bool hasAutoBeforeMargin = m_marginBefore.isAuto() && !m_defaultAnchorBox;
     bool hasAutoAfterMargin = m_marginAfter.isAuto() && !m_defaultAnchorBox;
 
@@ -546,6 +543,12 @@ bool PositionedLayoutConstraints::alignmentAppliesStretch(ItemPosition normalAli
     if (!m_style.positionArea() && (ItemPosition::Auto == alignmentPosition || ItemPosition::Normal == alignmentPosition))
         alignmentPosition = normalAlignment;
     return ItemPosition::Stretch == alignmentPosition;
+}
+
+bool PositionedLayoutConstraints::insetFitsContent() const
+{
+    return (m_insetBefore.isAuto() || m_insetAfter.isAuto())
+        && !m_defaultAnchorBox; // position-area and align-center zero out auto insets.
 }
 
 bool PositionedLayoutConstraints::needsGridAreaAdjustmentBeforeStaticPositioning() const
