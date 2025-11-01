@@ -189,8 +189,6 @@ bool defaultMutationEventsEnabled();
 
 bool defaultTrustedTypesEnabled();
 
-bool defaultGetBoundingClientRectZoomedEnabled();
-
 #if HAVE(MATERIAL_HOSTING)
 bool defaultHostedBlurMaterialInMediaControlsEnabled();
 #endif

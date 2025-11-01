@@ -129,7 +129,6 @@ enum class SDKAlignedBehavior {
     DidFailProvisionalNavigationWithErrorForFileURLNavigation,
     CrashWhenPreconnectingFromBackgroundThread,
     ExecutionTimingChangeOfModuleScripts,
-    GetBoundingClientRectZoomed,
 
     NumberOfBehaviors
 };

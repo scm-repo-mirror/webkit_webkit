@@ -3256,20 +3256,19 @@ GeolocationAPIEnabled:
   sharedPreferenceForWebProcess: true
   richJavaScript: true
 
-GetBoundingClientRectZoomedEnabled:
+GetBoundingClientRectZoomed:
   type: bool
-  status: stable
+  status: testable
   category: dom
-  humanReadableName: "Get(Bounding)ClientRect API zoomed"
-  humanReadableDescription: "Get(Bounding)ClientRect API return a zoomed rect"
+  humanReadableName: "getBoundingClientRect zoomed"
+  humanReadableDescription: "getBoundingClientRect zoomed"
   defaultValue:
     WebKitLegacy:
       default: false
     WebKit:
-      "PLATFORM(IOS_FAMILY)": WebKit::defaultGetBoundingClientRectZoomedEnabled()
-      default: true
+      default: false
     WebCore:
-      default: true
+      default: false
 
 GetCoalescedEventsEnabled:
   type: bool
