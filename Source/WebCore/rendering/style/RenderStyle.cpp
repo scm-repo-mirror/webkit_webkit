@@ -420,9 +420,9 @@ void RenderStyle::copyContentFrom(const RenderStyle& other)
     m_nonInheritedData.access().miscData.access().content = other.m_nonInheritedData->miscData->content;
 }
 
-void RenderStyle::setEvaluationTimeZoomEnabled(bool value)
+void RenderStyle::setEnableEvaluationTimeZoom(bool value)
 {
-    SET_VAR(m_rareInheritedData, evaluationTimeZoomEnabled, value);
+    SET_VAR(m_rareInheritedData, enableEvaluationTimeZoom, value);
 }
 
 void RenderStyle::setDeviceScaleFactor(float value)

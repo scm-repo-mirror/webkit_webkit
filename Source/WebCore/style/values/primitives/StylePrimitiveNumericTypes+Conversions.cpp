@@ -66,12 +66,12 @@ float adjustForZoom(float value, const RenderStyle& style)
     return adjustFloatForAbsoluteZoom(value, style);
 }
 
-bool evaluationTimeZoomEnabled(const RenderStyle& style)
+bool shouldUseEvaluationTimeZoom(const RenderStyle& style)
 {
-    return style.evaluationTimeZoomEnabled();
+    return style.enableEvaluationTimeZoom();
 }
 
-bool evaluationTimeZoomEnabled(const BuilderState& state)
+bool shouldUseEvaluationTimeZoom(const BuilderState& state)
 {
     return state.document().settings().evaluationTimeZoomEnabled();
 }
