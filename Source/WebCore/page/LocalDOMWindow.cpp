@@ -1759,10 +1759,7 @@ double LocalDOMWindow::devicePixelRatio() const
     if (!page)
         return 0.0;
 
-    float frameScale = 1.0f;
-    if (auto* localFrame = dynamicDowncast<LocalFrame>(frame.get()))
-        frameScale = localFrame->frameScaleFactor();
-    return page->deviceScaleFactor() * frameScale;
+    return page->deviceScaleFactor();
 }
 
 void LocalDOMWindow::scrollBy(double x, double y) const
