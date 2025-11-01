@@ -71,9 +71,9 @@ static inline Layout::ConstraintsForFlexContent constraintsForFlexContent(const 
     auto horizontalMarginBorderAndPadding = flexContainerRenderer.marginAndBorderAndPaddingStart() + flexContainerRenderer.marginAndBorderAndPaddingEnd();
     auto verticalMarginBorderAndPadding = flexContainerRenderer.marginAndBorderAndPaddingBefore() + flexContainerRenderer.marginAndBorderAndPaddingAfter();
 
-    auto widthValue = [&]<typename SizeType> (const SizeType& computedValue) -> std::optional<LayoutUnit> {
+    auto widthValue = [&](auto& computedValue) -> std::optional<LayoutUnit> {
         if (auto fixedWidth = computedValue.tryFixed()) {
-            auto value = Style::evaluate<LayoutUnit>(*fixedWidth, flexBoxStyle.usedZoomForLength());
+            auto value = Style::evaluate<LayoutUnit>(*fixedWidth, Style::ZoomNeeded { });
             return boxSizingIsContentBox ? value : value - horizontalMarginBorderAndPadding;
         }
         if (auto percentageWidth = computedValue.tryPercentage()) {
@@ -83,18 +83,18 @@ static inline Layout::ConstraintsForFlexContent constraintsForFlexContent(const 
         return { };
     };
 
-    auto heightValue = [&]<typename SizeType> (const SizeType& computedValue, bool callRendererForPercentValue = false) -> std::optional<LayoutUnit> {
+    auto heightValue = [&](auto& computedValue, bool callRendererForPercentValue = false) -> std::optional<LayoutUnit> {
         if (auto fixedHeight = computedValue.tryFixed()) {
-            auto value = Style::evaluate<LayoutUnit>(*fixedHeight, flexBoxStyle.usedZoomForLength());
+            auto value = Style::evaluate<LayoutUnit>(*fixedHeight, Style::ZoomNeeded { });
             return boxSizingIsContentBox ? value : value - verticalMarginBorderAndPadding;
         }
 
         if (auto percentageHeight = computedValue.tryPercentage()) {
             if (callRendererForPercentValue)
-                return flexContainerRenderer.computePercentageLogicalHeight(SizeType { *percentageHeight }, RenderBox::UpdatePercentageHeightDescendants::No);
+                return flexContainerRenderer.computePercentageLogicalHeight(*percentageHeight, RenderBox::UpdatePercentageHeightDescendants::No);
 
             if (auto fixedContainingBlockHeight = flexContainerRenderer.containingBlock()->style().height().tryFixed()) {
-                auto containingBlockHeightValue = Style::evaluate<LayoutUnit>(*fixedContainingBlockHeight, flexContainerRenderer.containingBlock()->style().usedZoomForLength());
+                auto containingBlockHeightValue = Style::evaluate<LayoutUnit>(*fixedContainingBlockHeight, Style::ZoomNeeded { });
                 auto value = Style::evaluate<LayoutUnit>(*percentageHeight, containingBlockHeightValue);
                 return boxSizingIsContentBox ? value : value - verticalMarginBorderAndPadding;
             }

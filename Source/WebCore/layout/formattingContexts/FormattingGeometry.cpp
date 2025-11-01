@@ -87,7 +87,7 @@ template<FormattingGeometry::HeightType heightType> std::optional<LayoutUnit> Fo
             return { };
     }
     if (auto fixedHeight = height.tryFixed())
-        return LayoutUnit { fixedHeight->resolveZoom(layoutBox.style().usedZoomForLength()) };
+        return LayoutUnit { fixedHeight->resolveZoom(Style::ZoomNeeded { }) };
 
     if (!containingBlockHeight) {
         if (layoutState().inQuirksMode()) {
@@ -95,25 +95,25 @@ template<FormattingGeometry::HeightType heightType> std::optional<LayoutUnit> Fo
             // Use heightValueOfNearestContainingBlockWithFixedHeight;
             ASSERT_NOT_IMPLEMENTED_YET();
         } else {
-            auto [nonAnonymousContainingBlockLogicalHeight, nonAnonymousContainingBlockUsedZoom] = [&]() -> std::pair<Style::PreferredSize, Style::ZoomFactor> {
+            auto nonAnonymousContainingBlockLogicalHeight = [&]() -> Style::PreferredSize {
                 // When the block level box is a direct child of an inline level box (<span><div></div></span>) and we wrap it into a continuation,
                 // the containing block (anonymous wrapper) is not the box we need to check for fixed height.
                 for (auto& containingBlock : containingBlockChain(layoutBox)) {
                     if (containingBlock.isAnonymous())
                         continue;
-                    return { containingBlock.style().logicalHeight(), containingBlock.style().usedZoomForLength() };
+                    return containingBlock.style().logicalHeight();
                 }
                 ASSERT_NOT_REACHED();
-                return { CSS::Keyword::Auto { }, Style::ZoomFactor { 1.0f, layoutBox.style().deviceScaleFactor() } };
-            }();
-            containingBlockHeight = fixedValue(nonAnonymousContainingBlockLogicalHeight, nonAnonymousContainingBlockUsedZoom);
+                return CSS::Keyword::Auto { };
+            };
+            containingBlockHeight = fixedValue(nonAnonymousContainingBlockLogicalHeight());
         }
     }
 
     if (!containingBlockHeight)
         return { };
 
-    return Style::evaluate<LayoutUnit>(height, *containingBlockHeight, layoutBox.style().usedZoomForLength());
+    return Style::evaluate<LayoutUnit>(height, *containingBlockHeight, Style::ZoomNeeded { });
 }
 
 std::optional<LayoutUnit> FormattingGeometry::computedHeight(const Box& layoutBox, std::optional<LayoutUnit> containingBlockHeight) const
@@ -140,7 +140,7 @@ template<FormattingGeometry::WidthType widthType> std::optional<LayoutUnit> Form
         else if constexpr (widthType == WidthType::Max)
             return layoutBox.style().logicalMaxWidth();
     }();
-    if (auto computedValue = this->computedValue(width, containingBlockWidth, layoutBox.style().usedZoomForLength()))
+    if (auto computedValue = this->computedValue(width, containingBlockWidth))
         return computedValue;
 
     if (width.isMinContent() || width.isMaxContent() || width.isFitContent()) {
@@ -1138,9 +1138,8 @@ ComputedVerticalMargin FormattingGeometry::computedVerticalMargin(const Box& lay
 IntrinsicWidthConstraints FormattingGeometry::constrainByMinMaxWidth(const Box& layoutBox, IntrinsicWidthConstraints intrinsicWidth) const
 {
     auto& style = layoutBox.style();
-    auto zoomFactor = style.usedZoomForLength();
-    auto minWidth = fixedValue(style.logicalMinWidth(), zoomFactor);
-    auto maxWidth = fixedValue(style.logicalMaxWidth(), zoomFactor);
+    auto minWidth = fixedValue(style.logicalMinWidth());
+    auto maxWidth = fixedValue(style.logicalMaxWidth());
     if (!minWidth && !maxWidth)
         return intrinsicWidth;
 

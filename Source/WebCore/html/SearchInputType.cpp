@@ -200,15 +200,13 @@ float SearchInputType::decorationWidth(float) const
     float width = 0;
     if (RefPtr resultsButton = m_resultsButton; resultsButton && resultsButton->renderStyle()) {
         // FIXME: Document what invariant holds to allow only using fixed logical widths?
-        CheckedPtr renderStyle = resultsButton->renderStyle();
-        if (auto fixedLogicalWidth = renderStyle->logicalWidth().tryFixed())
-            width += fixedLogicalWidth->resolveZoom(renderStyle->usedZoomForLength());
+        if (auto fixedLogicalWidth = resultsButton->renderStyle()->logicalWidth().tryFixed())
+            width += fixedLogicalWidth->resolveZoom(Style::ZoomNeeded { });
     }
     if (RefPtr cancelButton = m_cancelButton; cancelButton && cancelButton->renderStyle()) {
         // FIXME: Document what invariant holds to allow only using fixed logical widths?
-        CheckedPtr renderStyle = cancelButton->renderStyle();
-        if (auto fixedLogicalWidth = renderStyle->logicalWidth().tryFixed())
-            width += fixedLogicalWidth->resolveZoom(renderStyle->usedZoomForLength());
+        if (auto fixedLogicalWidth = cancelButton->renderStyle()->logicalWidth().tryFixed())
+            width += fixedLogicalWidth->resolveZoom(Style::ZoomNeeded { });
     }
     return width;
 }

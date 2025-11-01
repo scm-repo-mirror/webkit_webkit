@@ -342,7 +342,7 @@ IntrinsicWidthConstraints BlockFormattingGeometry::intrinsicWidthConstraints(con
         if (needsResolvedContainingBlockWidth)
             return { };
 
-        if (auto width = fixedValue(logicalWidth, layoutBox.style().usedZoomForLength()))
+        if (auto width = fixedValue(logicalWidth))
             return { *width, *width };
 
         if (layoutBox.isReplacedBox()) {

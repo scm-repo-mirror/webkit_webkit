@@ -1169,7 +1169,7 @@ LayoutUnit RenderDeprecatedFlexibleBox::allowedChildFlex(RenderBox* child, bool 
             LayoutUnit maxWidth = LayoutUnit::max();
             LayoutUnit width = contentWidthForChild(child);
             if (auto fixedMaxWidth = child->style().maxWidth().tryFixed())
-                maxWidth = fixedMaxWidth->resolveZoom(child->style().usedZoomForLength());
+                maxWidth = fixedMaxWidth->resolveZoom(Style::ZoomNeeded { });
             else if (child->style().maxWidth().isIntrinsicKeyword())
                 maxWidth = child->maxPreferredLogicalWidth();
             else if (child->style().maxWidth().isMinIntrinsic())
@@ -1182,7 +1182,7 @@ LayoutUnit RenderDeprecatedFlexibleBox::allowedChildFlex(RenderBox* child, bool 
             LayoutUnit maxHeight = LayoutUnit::max();
             LayoutUnit height = contentHeightForChild(child);
             if (auto fixedMaxHeight = child->style().maxHeight().tryFixed())
-                maxHeight = fixedMaxHeight->resolveZoom(child->style().usedZoomForLength());
+                maxHeight = fixedMaxHeight->resolveZoom(Style::ZoomNeeded { });
             if (maxHeight == LayoutUnit::max())
                 return maxHeight;
             return std::max<LayoutUnit>(0, maxHeight - height);
@@ -1194,7 +1194,7 @@ LayoutUnit RenderDeprecatedFlexibleBox::allowedChildFlex(RenderBox* child, bool 
         LayoutUnit minWidth = child->minPreferredLogicalWidth();
         LayoutUnit width = contentWidthForChild(child);
         if (auto fixedMinWidth = child->style().minWidth().tryFixed())
-            minWidth = fixedMinWidth->resolveZoom(child->style().usedZoomForLength());
+            minWidth = fixedMinWidth->resolveZoom(Style::ZoomNeeded { });
         else if (child->style().minWidth().isIntrinsicKeyword())
             minWidth = child->maxPreferredLogicalWidth();
         else if (child->style().minWidth().isMinIntrinsic())
@@ -1207,7 +1207,7 @@ LayoutUnit RenderDeprecatedFlexibleBox::allowedChildFlex(RenderBox* child, bool 
     } else {
         auto& minHeight = child->style().minHeight();
         if (auto fixedMinHeight = minHeight.tryFixed()) {
-            LayoutUnit minHeight { fixedMinHeight->resolveZoom(child->style().usedZoomForLength()) };
+            LayoutUnit minHeight { fixedMinHeight->resolveZoom(Style::ZoomNeeded { }) };
             LayoutUnit height = contentHeightForChild(child);
             LayoutUnit allowedShrinkage = std::min<LayoutUnit>(0, minHeight - height);
             return allowedShrinkage;

@@ -91,9 +91,9 @@ void AutoTableLayout::recalcColumn(unsigned effCol)
                     // Our limit is based on KHTML's representation that used 16 bits widths.
                     // FIXME: Other browsers have a lower limit for the cell's max width. 
                     const float cCellMaxWidth = 32760;
-                    auto [ cellLogicalWidth, cellUsedZoom ] = cell->styleOrColLogicalWidth();
+                    auto cellLogicalWidth = cell->styleOrColLogicalWidth();
                     if (auto fixedCellLogicalWidth = cellLogicalWidth.tryFixed()) {
-                        if (fixedCellLogicalWidth->resolveZoom(cellUsedZoom) > cCellMaxWidth)
+                        if (fixedCellLogicalWidth->resolveZoom(Style::ZoomNeeded { }) > cCellMaxWidth)
                             cellLogicalWidth = Style::PreferredSize::Fixed { cCellMaxWidth };
                     }
                     WTF::switchOn(cellLogicalWidth,
@@ -103,8 +103,8 @@ void AutoTableLayout::recalcColumn(unsigned effCol)
                                 float logicalWidth = cell->adjustBorderBoxLogicalWidthForBoxSizing(fixedCellLogicalWidth);
                                 if (auto fixedColumnLayoutLogicalWidth = columnLayout.logicalWidth.tryFixed()) {
                                     // Nav/IE weirdness
-                                    if ((logicalWidth > fixedColumnLayoutLogicalWidth->resolveZoom(cellUsedZoom))
-                                        || ((fixedColumnLayoutLogicalWidth->resolveZoom(cellUsedZoom) == logicalWidth) && (maxContributor == cell))) {
+                                    if ((logicalWidth > fixedColumnLayoutLogicalWidth->resolveZoom(Style::ZoomNeeded { }))
+                                        || ((fixedColumnLayoutLogicalWidth->resolveZoom(Style::ZoomNeeded { }) == logicalWidth) && (maxContributor == cell))) {
                                         columnLayout.logicalWidth = Style::PreferredSize::Fixed { logicalWidth };
                                         fixedContributor = cell;
                                     }
@@ -137,8 +137,7 @@ void AutoTableLayout::recalcColumn(unsigned effCol)
 
     // Nav/IE weirdness
     if (auto fixedColumnLayoutLogicalWidth = columnLayout.logicalWidth.tryFixed()) {
-        if (m_table->document().inQuirksMode() && columnLayout.maxLogicalWidth > fixedColumnLayoutLogicalWidth->resolveZoom(Style::ZoomFactor { columnLayout.usedZoom, m_table->style().deviceScaleFactor() })
-        && fixedContributor != maxContributor) {
+        if (m_table->document().inQuirksMode() && columnLayout.maxLogicalWidth > fixedColumnLayoutLogicalWidth->resolveZoom(Style::ZoomNeeded { }) && fixedContributor != maxContributor) {
             columnLayout.logicalWidth = CSS::Keyword::Auto { };
             fixedContributor = nullptr;
         }
@@ -172,10 +171,9 @@ void AutoTableLayout::fullRecalc()
             unsigned effCol = m_table->colToEffCol(currentColumn);
             unsigned span = column->span();
             if (!colLogicalWidth.isAuto() && span == 1 && effCol < nEffCols && m_table->spanOfEffCol(effCol) == 1) {
-                m_layoutStruct[effCol].usedZoom = column->style().usedZoom();
                 m_layoutStruct[effCol].logicalWidth = colLogicalWidth;
-                if (auto fixedColLogicalWidth = colLogicalWidth.tryFixed(); fixedColLogicalWidth && m_layoutStruct[effCol].maxLogicalWidth < fixedColLogicalWidth->resolveZoom(column->style().usedZoomForLength()))
-                    m_layoutStruct[effCol].maxLogicalWidth = fixedColLogicalWidth->resolveZoom(column->style().usedZoomForLength());
+                if (auto fixedColLogicalWidth = colLogicalWidth.tryFixed(); fixedColLogicalWidth && m_layoutStruct[effCol].maxLogicalWidth < fixedColLogicalWidth->resolveZoom(Style::ZoomNeeded { }))
+                    m_layoutStruct[effCol].maxLogicalWidth = fixedColLogicalWidth->resolveZoom(Style::ZoomNeeded { });
             }
             currentColumn += span;
         }
@@ -268,7 +266,7 @@ void AutoTableLayout::computeIntrinsicLogicalWidths(LayoutUnit& minWidth, Layout
 void AutoTableLayout::applyPreferredLogicalWidthQuirks(LayoutUnit& minWidth, LayoutUnit& maxWidth) const
 {
     if (auto fixedTableLogicalWidth = m_table->style().logicalWidth().tryFixed(); fixedTableLogicalWidth && fixedTableLogicalWidth->isPositive()) {
-        minWidth = std::max(minWidth, m_table->overridingBorderBoxLogicalWidth().value_or(LayoutUnit { fixedTableLogicalWidth->resolveZoom(m_table->style().usedZoomForLength()) }));
+        minWidth = std::max(minWidth, m_table->overridingBorderBoxLogicalWidth().value_or(LayoutUnit { fixedTableLogicalWidth->resolveZoom(Style::ZoomNeeded { }) }));
         maxWidth = minWidth;
     }
 }
@@ -297,7 +295,7 @@ float AutoTableLayout::calcEffectiveLogicalWidth()
 
         unsigned span = cell->colSpan();
 
-        auto [ cellLogicalWidth, cellUsedZoom ] = cell->styleOrColLogicalWidth();
+        auto cellLogicalWidth = cell->styleOrColLogicalWidth();
         if (cellLogicalWidth.isKnownZero())
             cellLogicalWidth = CSS::Keyword::Auto { };
 
@@ -342,7 +340,7 @@ float AutoTableLayout::calcEffectiveLogicalWidth()
                 },
                 [&](const Style::PreferredSize::Fixed& fixed) {
                     if (fixed.isPositive()) {
-                        fixedWidth += fixed.resolveZoom(Style::ZoomFactor { columnLayout.usedZoom, m_table->style().deviceScaleFactor() });
+                        fixedWidth += fixed.resolveZoom(Style::ZoomNeeded { });
                         allColsArePercent = false;
                         // IE resets effWidth to Auto here, but this breaks the konqueror about page and seems to be some bad
                         // legacy behavior anyway. mozilla doesn't do this so I decided we don't neither.
@@ -408,7 +406,7 @@ float AutoTableLayout::calcEffectiveLogicalWidth()
                 for (unsigned pos = effCol; fixedWidth > 0 && pos < lastCol; ++pos) {
                     // NOTE: The unchecked use of tryFixed() here is allowed because `allColsAreFixed` is true.
                     // FIXME: Find a more type safe way to enforce this invariant.
-                    auto fixedLogicalWidth = m_layoutStruct[pos].logicalWidth.tryFixed()->resolveZoom(Style::ZoomFactor { m_layoutStruct[effCol].usedZoom, m_table->style().deviceScaleFactor() });
+                    auto fixedLogicalWidth = m_layoutStruct[pos].logicalWidth.tryFixed()->resolveZoom(Style::ZoomNeeded { });
 
                     float cellLogicalWidth = std::max(m_layoutStruct[pos].effectiveMinLogicalWidth, cellMinLogicalWidth * fixedLogicalWidth / fixedWidth);
                     fixedWidth -= fixedLogicalWidth;
@@ -448,9 +446,8 @@ float AutoTableLayout::calcEffectiveLogicalWidth()
                 // Give min to variable first, to fixed second, and to others third.
                 for (unsigned pos = effCol; remainingMaxLogicalWidth >= 0 && pos < lastCol; ++pos) {
                     if (auto fixedLogicalWidth = m_layoutStruct[pos].logicalWidth.tryFixed(); fixedLogicalWidth && haveAuto && fixedWidth <= cellMinLogicalWidth) {
-                        auto deviceScaleFactor = m_table->style().deviceScaleFactor();
-                        float colMinLogicalWidth = std::max(m_layoutStruct[pos].effectiveMinLogicalWidth, fixedLogicalWidth->resolveZoom(Style::ZoomFactor { m_layoutStruct[pos].usedZoom, deviceScaleFactor }));
-                        fixedWidth -= fixedLogicalWidth->resolveZoom(Style::ZoomFactor { m_layoutStruct[pos].usedZoom, deviceScaleFactor });
+                        float colMinLogicalWidth = std::max(m_layoutStruct[pos].effectiveMinLogicalWidth, fixedLogicalWidth->resolveZoom(Style::ZoomNeeded { }));
+                        fixedWidth -= fixedLogicalWidth->resolveZoom(Style::ZoomNeeded { });
                         remainingMinLogicalWidth -= m_layoutStruct[pos].effectiveMinLogicalWidth;
                         remainingMaxLogicalWidth -= m_layoutStruct[pos].effectiveMaxLogicalWidth;
                         cellMinLogicalWidth -= colMinLogicalWidth;
@@ -579,7 +576,7 @@ void AutoTableLayout::layout()
         for (size_t i = 0; i < nEffCols; ++i) {
             auto& logicalWidth = m_layoutStruct[i].effectiveLogicalWidth;
             if (logicalWidth.isPercentOrCalculated()) {
-                float cellLogicalWidth = std::max<float>(m_layoutStruct[i].effectiveMinLogicalWidth, Style::evaluateMinimum<float>(logicalWidth, tableLogicalWidth, Style::ZoomFactor { m_layoutStruct[i].usedZoom, m_table->style().deviceScaleFactor() }));
+                float cellLogicalWidth = std::max<float>(m_layoutStruct[i].effectiveMinLogicalWidth, Style::evaluateMinimum<float>(logicalWidth, tableLogicalWidth, Style::ZoomNeeded { }));
                 available += m_layoutStruct[i].computedLogicalWidth - cellLogicalWidth;
                 m_layoutStruct[i].computedLogicalWidth = cellLogicalWidth;
             }
@@ -606,11 +603,9 @@ void AutoTableLayout::layout()
     if (available > 0) {
         for (size_t i = 0; i < nEffCols; ++i) {
             auto& logicalWidth = m_layoutStruct[i].effectiveLogicalWidth;
-            auto usedZoom = m_layoutStruct[i].usedZoom;
-            auto deviceScaleFactor = m_table->style().deviceScaleFactor();
-            if (auto fixedLogicalWidth = logicalWidth.tryFixed(); fixedLogicalWidth && fixedLogicalWidth->resolveZoom(Style::ZoomFactor { usedZoom, deviceScaleFactor }) > m_layoutStruct[i].computedLogicalWidth) {
-                available += m_layoutStruct[i].computedLogicalWidth - fixedLogicalWidth->resolveZoom(Style::ZoomFactor { usedZoom, deviceScaleFactor });
-                m_layoutStruct[i].computedLogicalWidth = fixedLogicalWidth->resolveZoom(Style::ZoomFactor { usedZoom, deviceScaleFactor });
+            if (auto fixedLogicalWidth = logicalWidth.tryFixed(); fixedLogicalWidth && fixedLogicalWidth->resolveZoom(Style::ZoomNeeded { }) > m_layoutStruct[i].computedLogicalWidth) {
+                available += m_layoutStruct[i].computedLogicalWidth - fixedLogicalWidth->resolveZoom(Style::ZoomNeeded { });
+                m_layoutStruct[i].computedLogicalWidth = fixedLogicalWidth->resolveZoom(Style::ZoomNeeded { });
             }
         }
     }

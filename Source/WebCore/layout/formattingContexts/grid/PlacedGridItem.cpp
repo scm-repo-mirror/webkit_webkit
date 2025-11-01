@@ -34,13 +34,12 @@ namespace Layout {
 
 PlacedGridItem::PlacedGridItem(const UnplacedGridItem& unplacedGridItem, GridAreaLines gridAreaLines,
     const ComputedSizes& inlineAxisSizes, const ComputedSizes& blockAxisSizes, const StyleSelfAlignmentData& inlineAxisAlignment,
-    const StyleSelfAlignmentData& blockAxisAlignment, const Style::ZoomFactor& usedZoom)
+    const StyleSelfAlignmentData& blockAxisAlignment)
     : m_layoutBox(unplacedGridItem.m_layoutBox)
     , m_inlineAxisSizes(inlineAxisSizes)
     , m_blockAxisSizes(blockAxisSizes)
     , m_inlineAxisAlignment(inlineAxisAlignment)
     , m_blockAxisAlignment(blockAxisAlignment)
-    , m_usedZoom(usedZoom)
     , m_gridAreaLines(gridAreaLines)
 {
 }

@@ -50,18 +50,14 @@ inline const BorderValue& RenderTableCell::borderAdjoiningTableStart() const
     return style().borderStart(tableWritingMode());
 }
 
-inline std::pair<Style::PreferredSize, Style::ZoomFactor> RenderTableCell::styleOrColLogicalWidth() const
+inline Style::PreferredSize RenderTableCell::styleOrColLogicalWidth() const
 {
-    auto& style = this->style();
-    auto& styleWidth = style.logicalWidth();
+    auto& styleWidth = style().logicalWidth();
     if (!styleWidth.isAuto())
-        return { styleWidth, style.usedZoomForLength() };
-    if (RenderTableCol* firstColumn = table()->colElement(col())) {
-        // logicalWidthFromColumns will return a zoomed size so we return a zoom
-        // factor of 1.0 to avoid double zooming.
-        return { logicalWidthFromColumns(firstColumn, styleWidth), Style::ZoomFactor { 1.0f, style.deviceScaleFactor() } };
-    }
-    return { styleWidth, style.usedZoomForLength() };
+        return styleWidth;
+    if (RenderTableCol* firstColumn = table()->colElement(col()))
+        return logicalWidthFromColumns(firstColumn, styleWidth);
+    return styleWidth;
 }
 
 inline bool RenderTableCell::isBaselineAligned() const

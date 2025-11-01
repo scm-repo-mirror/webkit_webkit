@@ -34,7 +34,7 @@ LayoutUnit usedInlineSizeForGridItem(const PlacedGridItem& placedGridItem)
 {
     auto& inlineAxisSizes = placedGridItem.inlineAxisSizes();
     if (auto fixedInlineSize = inlineAxisSizes.preferredSize.tryFixed())
-        return LayoutUnit { fixedInlineSize->resolveZoom(placedGridItem.usedZoom()) };
+        return LayoutUnit { fixedInlineSize->resolveZoom(Style::ZoomNeeded { }) };
 
     ASSERT_NOT_IMPLEMENTED_YET();
     return { };
@@ -44,7 +44,7 @@ LayoutUnit usedBlockSizeForGridItem(const PlacedGridItem& placedGridItem)
 {
     auto& blockAxisSizes = placedGridItem.blockAxisSizes();
     if (auto fixedBlockSize = blockAxisSizes.preferredSize.tryFixed())
-        return LayoutUnit { fixedBlockSize->resolveZoom(placedGridItem.usedZoom()) };
+        return LayoutUnit { fixedBlockSize->resolveZoom(Style::ZoomNeeded { }) };
 
     ASSERT_NOT_IMPLEMENTED_YET();
     return { };

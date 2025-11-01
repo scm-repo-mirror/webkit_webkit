@@ -58,7 +58,6 @@ private:
         float effectiveMaxLogicalWidth { 0 };
         float computedLogicalWidth { 0 };
         bool emptyCellsOnly { true };
-        float usedZoom { 1.0f };
     };
 
     Vector<Layout> m_layoutStruct;

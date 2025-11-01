@@ -309,9 +309,8 @@ float NumberInputType::decorationWidth(float inputWidth) const
         // So computedStyle()->logicalWidth() is used instead.
 
         // FIXME <https://webkit.org/b/294858>: This is incorrect for anything other than fixed widths.
-        CheckedPtr computedStyle = spinButton->computedStyle();
-        if (auto fixedLogicalWidth = computedStyle->logicalWidth().tryFixed())
-            width += fixedLogicalWidth->resolveZoom(computedStyle->usedZoomForLength());
+        if (auto fixedLogicalWidth = spinButton->computedStyle()->logicalWidth().tryFixed())
+            width += fixedLogicalWidth->resolveZoom(Style::ZoomNeeded { });
         else if (auto percentageLogicalWidth = spinButton->computedStyle()->logicalWidth().tryPercentage()) {
             auto percentageLogicalWidthValue = percentageLogicalWidth->value;
             if (percentageLogicalWidthValue != 100.f)
