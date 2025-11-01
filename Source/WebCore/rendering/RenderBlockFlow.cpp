@@ -4484,29 +4484,32 @@ RenderObject* InlineMinMaxIterator::next()
     return result;
 }
 
-template <typename SizeType>
-auto borderMarginOrPaddingWidth(LayoutUnit childValue, const SizeType& marginOrPadding, const Style::ZoomFactor& zoomFactor) -> LayoutUnit {
-    if (auto fixed = marginOrPadding.tryFixed())
-        return LayoutUnit(fixed->resolveZoom(zoomFactor));
-    if constexpr (std::same_as<SizeType, Style::MarginEdge>) {
-        if (marginOrPadding.isAuto())
-            return { };
-    }
-    return childValue;
-};
-
 static LayoutUnit getBorderPaddingMargin(const RenderBoxModelObject& child, bool endOfInline)
 {
     auto& childStyle = child.style();
     const auto& childZoomFactor = childStyle.usedZoomForLength();
 
+    auto borderMarginWidth = [&childZoomFactor](LayoutUnit childValue, const Style::MarginEdge& margin) -> LayoutUnit {
+        if (auto fixed = margin.tryFixed())
+            return LayoutUnit(fixed->resolveZoom(childZoomFactor));
+        if (margin.isAuto())
+            return { };
+        return childValue;
+    };
+
+    auto borderPaddingWidth = [](LayoutUnit childValue, const Style::PaddingEdge& padding) -> LayoutUnit {
+        if (auto fixed = padding.tryFixed())
+            return LayoutUnit(fixed->resolveZoom(Style::ZoomNeeded { }));
+        return childValue;
+    };
+
     if (endOfInline) {
-        return borderMarginOrPaddingWidth(child.marginEnd(), childStyle.marginEnd(), childZoomFactor) +
-            borderMarginOrPaddingWidth(child.paddingEnd(), childStyle.paddingEnd(), childZoomFactor) +
+        return borderMarginWidth(child.marginEnd(), childStyle.marginEnd()) +
+            borderPaddingWidth(child.paddingEnd(), childStyle.paddingEnd()) +
             child.borderEnd();
     }
-    return borderMarginOrPaddingWidth(child.marginStart(), childStyle.marginStart(), childZoomFactor) +
-        borderMarginOrPaddingWidth(child.paddingStart(), childStyle.paddingStart(), childZoomFactor) +
+    return borderMarginWidth(child.marginStart(), childStyle.marginStart()) +
+        borderPaddingWidth(child.paddingStart(), childStyle.paddingStart()) +
         child.borderStart();
 }
 
