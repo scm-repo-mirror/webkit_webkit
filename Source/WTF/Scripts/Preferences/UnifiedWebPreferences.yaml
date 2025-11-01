@@ -1496,7 +1496,7 @@ CSSTextUnderlinePositionLeftRightEnabled:
       default: true
     WebCore:
       default: true
-
+      
 CSSTextWrapPrettyEnabled:
    type: bool
    status: stable
@@ -2435,7 +2435,7 @@ DeviceWidth:
       default: 0
     WebCore:
       default: 0
-
+      
 DevolvableWidgetsEnabled:
   type: bool
   status: stable
@@ -3250,20 +3250,6 @@ GeolocationAPIEnabled:
   sharedPreferenceForWebProcess: true
   richJavaScript: true
 
-GetBoundingClientRectZoomed:
-  type: bool
-  status: testable
-  category: dom
-  humanReadableName: "getBoundingClientRect zoomed"
-  humanReadableDescription: "getBoundingClientRect zoomed"
-  defaultValue:
-    WebKitLegacy:
-      default: false
-    WebKit:
-      default: false
-    WebCore:
-      default: false
-
 GetCoalescedEventsEnabled:
   type: bool
   status: stable
@@ -3351,7 +3337,7 @@ GraphicsContextFiltersEnabled:
        default: true
      WebCore:
        default: true
-
+  
 GridFormattingContextIntegrationEnabled:
   type: bool
   status: unstable
@@ -4605,7 +4591,7 @@ LocalFileContentSniffingEnabled:
       default: false
     WebCore:
       default: false
-
+      
 LocalNetworkAccessEnabled:
   type: bool
   status: unstable
@@ -6851,7 +6837,7 @@ ScrollToTextFragmentMarkingEnabled:
       default: true
     WebCore:
       default: true
-
+      
 ScrollendEventEnabled:
   type: bool
   status: stable
@@ -7046,7 +7032,7 @@ ServiceWorkersUserGestureEnabled:
       default: true
     WebCore:
       default: true
-
+      
 SessionStorageEnabled:
   type: bool
   status: mature
@@ -7212,7 +7198,7 @@ ShouldDisplayTextDescriptions:
   type: bool
   status: embedder
   condition: ENABLE(VIDEO)
-  defaultValue:
+  defaultValue: 
     WebKitLegacy:
       default: false
     WebKit:
@@ -7561,17 +7547,17 @@ SpeakerSelectionRequiresUserGesture:
 
 SpeculationRulesPrefetchEnabled:
   type: bool
-  status: testable
+  status: testable 
   category: html
   humanReadableName: "SpeculationRules prefetch"
   humanReadableDescription: "SpeculationRules prefetch"
   defaultValue:
     WebKitLegacy:
-      default: false
+      default: false 
     WebKit:
-      default: false
+      default: false 
     WebCore:
-      default: false
+      default: false 
   disableInLockdownMode: true
   sharedPreferenceForWebProcess: true
   richJavaScript: true
@@ -7681,7 +7667,7 @@ StorageAPIEstimateEnabled:
     WebCore:
       "PLATFORM(COCOA)" : true
       default: false
-
+      
 StorageAccessAPIEnabled:
   type: bool
   status: embedder
@@ -8631,7 +8617,7 @@ VideoPresentationManagerEnabled:
       "PLATFORM(VISION)" : true
       default: false
   sharedPreferenceForWebProcess: true
-
+  
 VideoPresentationModeAPIEnabled:
   type: bool
   status: embedder
@@ -9755,7 +9741,7 @@ WindowFocusRestricted:
       default: true
     WebCore:
       default: true
-
+      
 WirelessPlaybackTargetAPIEnabled:
   type: bool
   status: embedder
