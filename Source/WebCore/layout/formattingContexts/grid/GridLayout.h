@@ -34,7 +34,6 @@ class RenderStyle;
 
 namespace Style {
 struct GridTrackSize;
-struct ZoomFactor;
 };
 
 namespace Layout {
@@ -77,8 +76,8 @@ private:
     using UsedBlockSizes = Vector<LayoutUnit>;
     std::pair<UsedInlineSizes, UsedBlockSizes> layoutGridItems(const PlacedGridItems&, const UsedTrackSizes&) const;
 
-    static Vector<UsedMargins> computeInlineMargins(const PlacedGridItems&, const Style::ZoomFactor&);
-    static Vector<UsedMargins> computeBlockMargins(const PlacedGridItems&, const Style::ZoomFactor&);
+    static Vector<UsedMargins> computeInlineMargins(const PlacedGridItems&);
+    static Vector<UsedMargins> computeBlockMargins(const PlacedGridItems&);
 
     using BorderBoxPositions = Vector<LayoutUnit>;
     static BorderBoxPositions performInlineAxisSelfAlignment(const PlacedGridItems&, const Vector<UsedMargins>&);

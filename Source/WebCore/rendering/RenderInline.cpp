@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 1999 Lars Knoll (knoll@kde.org)
  *           (C) 1999 Antti Koivisto (koivisto@kde.org)
- * Copyright (C) 2003-2025 Apple Inc. All rights reserved.
+ * Copyright (C) 2003-2023 Apple Inc. All rights reserved.
  * Copyright (C) 2014 Google Inc. All rights reserved.
  * Copyright (C) 2025 Samuel Weinig <sam@webkit.org>
  *
@@ -348,51 +348,51 @@ LayoutPoint RenderInline::firstInlineBoxTopLeft() const
     return { };
 }
 
-static LayoutUnit computeMargin(const RenderInline* renderer, const Style::MarginEdge& margin, const Style::ZoomFactor& zoomFactor)
+static LayoutUnit computeMargin(const RenderInline* renderer, const Style::MarginEdge& margin)
 {
     return Style::evaluateMinimum<LayoutUnit>(margin, [&] ALWAYS_INLINE_LAMBDA {
         return std::max<LayoutUnit>(0, renderer->containingBlock()->contentBoxLogicalWidth());
-    }, zoomFactor);
+    }, Style::ZoomNeeded { });
 }
 
 LayoutUnit RenderInline::marginLeft() const
 {
-    return computeMargin(this, style().marginLeft(), style().usedZoomForLength());
+    return computeMargin(this, style().marginLeft());
 }
 
 LayoutUnit RenderInline::marginRight() const
 {
-    return computeMargin(this, style().marginRight(), style().usedZoomForLength());
+    return computeMargin(this, style().marginRight());
 }
 
 LayoutUnit RenderInline::marginTop() const
 {
-    return computeMargin(this, style().marginTop(), style().usedZoomForLength());
+    return computeMargin(this, style().marginTop());
 }
 
 LayoutUnit RenderInline::marginBottom() const
 {
-    return computeMargin(this, style().marginBottom(), style().usedZoomForLength());
+    return computeMargin(this, style().marginBottom());
 }
 
 LayoutUnit RenderInline::marginStart(const WritingMode writingMode) const
 {
-    return computeMargin(this, style().marginStart(writingMode), style().usedZoomForLength());
+    return computeMargin(this, style().marginStart(writingMode));
 }
 
 LayoutUnit RenderInline::marginEnd(const WritingMode writingMode) const
 {
-    return computeMargin(this, style().marginEnd(writingMode), style().usedZoomForLength());
+    return computeMargin(this, style().marginEnd(writingMode));
 }
 
 LayoutUnit RenderInline::marginBefore(const WritingMode writingMode) const
 {
-    return computeMargin(this, style().marginBefore(writingMode), style().usedZoomForLength());
+    return computeMargin(this, style().marginBefore(writingMode));
 }
 
 LayoutUnit RenderInline::marginAfter(const WritingMode writingMode) const
 {
-    return computeMargin(this, style().marginAfter(writingMode), style().usedZoomForLength());
+    return computeMargin(this, style().marginAfter(writingMode));
 }
 
 ASCIILiteral RenderInline::renderName() const

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2003-2025 Apple Inc. All rights reserved.
+ * Copyright (C) 2003-2023 Apple Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -143,11 +143,10 @@ inline LayoutRect RenderBox::flippedContentBoxRect() const
 
 inline LayoutRect RenderBox::marginBoxRect() const
 {
-    auto zoomFactor = style().usedZoomForLength();
-    auto left = resolveLengthPercentageUsingContainerLogicalWidth(style().marginLeft(), zoomFactor);
-    auto right = resolveLengthPercentageUsingContainerLogicalWidth(style().marginRight(), zoomFactor);
-    auto top = resolveLengthPercentageUsingContainerLogicalWidth(style().marginTop(), zoomFactor);
-    auto bottom = resolveLengthPercentageUsingContainerLogicalWidth(style().marginBottom(), zoomFactor);
+    auto left = resolveLengthPercentageUsingContainerLogicalWidth(style().marginLeft());
+    auto right = resolveLengthPercentageUsingContainerLogicalWidth(style().marginRight());
+    auto top = resolveLengthPercentageUsingContainerLogicalWidth(style().marginTop());
+    auto bottom = resolveLengthPercentageUsingContainerLogicalWidth(style().marginBottom());
     return { -left, -top, size().width() + left + right, size().height() + top + bottom };
 }
 
