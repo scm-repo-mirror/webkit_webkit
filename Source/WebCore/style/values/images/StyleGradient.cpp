@@ -137,7 +137,7 @@ static std::optional<float> resolveColorStopPosition(const GradientLinearColorSt
         [&](const typename LengthPercentage<>::Calc& calc) -> std::optional<float> {
             if (gradientLength <= 0)
                 return 0;
-            return Style::evaluate<float>(calc, gradientLength, Style::ZoomNeeded { }) / gradientLength;
+            return calc.protectedCalculation()->evaluate(gradientLength) / gradientLength;
         }
     );
 }
@@ -155,7 +155,7 @@ static std::optional<float> resolveColorStopPosition(const GradientAngularColorS
             return percentage.value / 100.0;
         },
         [&](const typename AnglePercentage<>::Calc& calc) -> std::optional<float> {
-            return Style::evaluate<float>(calc, 100, Style::ZoomNeeded { });
+            return calc.protectedCalculation()->evaluate(100) / 100.0;
         }
     );
 }

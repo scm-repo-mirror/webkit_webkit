@@ -81,19 +81,10 @@ auto LengthWrapperData::ipcData() const -> IPCData
     };
 }
 
-float LengthWrapperData::nonNanCalculatedValue(float maxValue, const ZoomFactor& usedZoom) const
+float LengthWrapperData::nonNanCalculatedValue(float maxValue) const
 {
     ASSERT(m_kind == LengthWrapperDataKind::Calculation);
-    float result = protectedCalculationValue()->evaluate(maxValue, usedZoom);
-    if (std::isnan(result))
-        return 0;
-    return result;
-}
-
-float LengthWrapperData::nonNanCalculatedValue(float maxValue, const ZoomNeeded& token) const
-{
-    ASSERT(m_kind == LengthWrapperDataKind::Calculation);
-    float result = protectedCalculationValue()->evaluate(maxValue, token);
+    float result = protectedCalculationValue()->evaluate(maxValue);
     if (std::isnan(result))
         return 0;
     return result;

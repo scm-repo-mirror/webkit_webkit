@@ -44,17 +44,13 @@ enum class Category : uint8_t;
 
 namespace Style {
 
-struct ZoomFactor;
-struct ZoomNeeded;
-
 class CalculationValue : public RefCounted<CalculationValue> {
     WTF_DEPRECATED_MAKE_FAST_COMPACT_ALLOCATED(CalculationValue);
 public:
     WEBCORE_EXPORT static Ref<CalculationValue> create(CSS::Category, CSS::Range, Calculation::Tree&&);
     WEBCORE_EXPORT ~CalculationValue();
 
-    double evaluate(double percentResolutionLength, const ZoomFactor& usedZoom) const;
-    double evaluate(double percentResolutionLength, const ZoomNeeded&) const;
+    double evaluate(double percentResolutionLength) const;
 
     CSS::Category category() const { return m_category; }
     CSS::Range range() const { return m_range; }

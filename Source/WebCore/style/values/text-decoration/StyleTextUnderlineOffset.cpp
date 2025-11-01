@@ -42,10 +42,7 @@ float TextUnderlineOffset::resolve(const RenderStyle& style, float autoValue) co
         [&](const Fixed& fixed) -> float {
             return Style::evaluate<float>(fixed, style.usedZoomForLength());
         },
-        [&](const Calc& calc) -> float {
-            return Style::evaluate<float>(calc, style.computedFontSize(), style.usedZoomForLength());
-        },
-        [&](const Percentage& percentage) -> float {
+        [&](const auto& percentage) -> float {
             return Style::evaluate<float>(percentage, style.computedFontSize());
         }
     );

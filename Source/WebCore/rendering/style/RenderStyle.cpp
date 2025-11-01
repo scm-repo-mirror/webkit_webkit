@@ -2604,7 +2604,7 @@ float RenderStyle::computeLineHeight(const Style::LineHeight& lineHeight) const
             return Style::evaluate<LayoutUnit>(percentage, LayoutUnit { computedFontSize() }).toFloat();
         },
         [&](const Style::LineHeight::Calc& calc) -> float {
-            return Style::evaluate<LayoutUnit>(calc, LayoutUnit { computedFontSize() }, usedZoomForLength()).toFloat();
+            return Style::evaluate<LayoutUnit>(calc, LayoutUnit { computedFontSize() }).toFloat();
         }
     );
 }
@@ -3598,7 +3598,7 @@ float RenderStyle::computedStrokeWidth(const IntSize& viewportSize) const
         },
         [&](const Style::StrokeWidth::Calc& calcStrokeWidth) -> float {
             // FIXME: It is almost certainly wrong that calc and percentage are being handled differently - https://bugs.webkit.org/show_bug.cgi?id=296482
-            return Style::evaluate<float>(calcStrokeWidth, viewportSize.width(), Style::ZoomNeeded { });
+            return Style::evaluate<float>(calcStrokeWidth, viewportSize.width());
         }
     );
 }

@@ -26,18 +26,13 @@
 
 namespace WebCore {
 namespace Style {
-
-struct ZoomFactor;
-struct ZoomNeeded;
-
 namespace Calculation {
 
 struct Tree;
 
 // MARK: Evaluation.
 
-double evaluate(const Tree&, double percentResolutionLength, const ZoomFactor&);
-double evaluate(const Tree&, double percentResolutionLength, const ZoomNeeded&);
+double evaluate(const Tree&, double percentResolutionLength);
 
 } // namespace Calculation
 } // namespace Style
