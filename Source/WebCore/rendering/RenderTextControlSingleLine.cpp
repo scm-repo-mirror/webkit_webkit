@@ -173,7 +173,6 @@ void RenderTextControlSingleLine::layout()
             return autoFillButtonElement->renderBox();
         }();
 
-        auto usedZoomForLength = containerRenderer->style().usedZoomForLength().value;
         if (autoFillStrongPasswordButtonRenderer && innerTextRenderer && innerBlockRenderer) {
             auto newContainerHeight = innerTextLogicalHeight;
 
@@ -181,16 +180,16 @@ void RenderTextControlSingleLine::layout()
             if (autoFillStrongPasswordButtonRenderer->logicalTop() < innerBlockRenderer->logicalBottom())
                 newContainerHeight = std::max<LayoutUnit>(newContainerHeight, autoFillStrongPasswordButtonRenderer->logicalHeight());
 
-            containerRenderer->mutableStyle().setLogicalHeight(Style::PreferredSize::Fixed { newContainerHeight / usedZoomForLength });
+            containerRenderer->mutableStyle().setLogicalHeight(Style::PreferredSize::Fixed { newContainerHeight });
             setNeedsLayout(MarkOnlyThis);
         } else if (containerLogicalHeight > logicalHeightLimit) {
-            containerRenderer->mutableStyle().setLogicalHeight(Style::PreferredSize::Fixed { logicalHeightLimit / usedZoomForLength });
+            containerRenderer->mutableStyle().setLogicalHeight(Style::PreferredSize::Fixed { logicalHeightLimit });
             setNeedsLayout(MarkOnlyThis);
         } else if (containerRenderer->logicalHeight() < contentBoxLogicalHeight()) {
-            containerRenderer->mutableStyle().setLogicalHeight(Style::PreferredSize::Fixed { contentBoxLogicalHeight() / usedZoomForLength });
+            containerRenderer->mutableStyle().setLogicalHeight(Style::PreferredSize::Fixed { contentBoxLogicalHeight() });
             setNeedsLayout(MarkOnlyThis);
         } else
-            containerRenderer->mutableStyle().setLogicalHeight(Style::PreferredSize::Fixed { containerLogicalHeight / usedZoomForLength });
+            containerRenderer->mutableStyle().setLogicalHeight(Style::PreferredSize::Fixed { containerLogicalHeight });
     }
 
     // If we need another layout pass, we have changed one of children's height so we need to relayout them.
@@ -228,10 +227,9 @@ void RenderTextControlSingleLine::layout()
     HTMLElement* placeholderElement = inputElement().placeholderElement();
     if (RenderBox* placeholderBox = placeholderElement ? placeholderElement->renderBox() : 0) {
         auto innerTextWidth = LayoutUnit { };
-        auto usedZoomForLength = placeholderBox->style().usedZoomForLength().value;
         if (innerTextRenderer)
             innerTextWidth = innerTextRenderer->logicalWidth();
-        placeholderBox->mutableStyle().setWidth(Style::PreferredSize::Fixed { (innerTextWidth - placeholderBox->horizontalBorderAndPaddingExtent()) / usedZoomForLength });
+        placeholderBox->mutableStyle().setWidth(Style::PreferredSize::Fixed { innerTextWidth - placeholderBox->horizontalBorderAndPaddingExtent() });
         bool neededLayout = placeholderBox->needsLayout();
         bool placeholderBoxHadLayout = placeholderBox->everHadLayout();
         if (innerTextSizeChanged) {

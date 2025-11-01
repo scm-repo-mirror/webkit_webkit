@@ -2077,9 +2077,8 @@ static void applyEmPadding(RenderStyle& style, const Element* element, float pad
 
     Ref document = element->document();
 
-    auto usedZoom = style.usedZoomForLength().value;
-    const auto paddingInlinePixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInline->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) / usedZoom };
-    const auto paddingBlockPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingBlock->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() }))  / usedZoom };
+    const auto paddingInlinePixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInline->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) / style.usedZoom() };
+    const auto paddingBlockPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingBlock->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() }))  / style.usedZoom() };
 
     const auto isVertical = !style.writingMode().isHorizontal();
     const auto horizontalPadding = isVertical ? paddingBlockPixels : paddingInlinePixels;
@@ -2099,9 +2098,8 @@ static Style::PaddingBox paddingBoxForNumberField(const RenderStyle& style, cons
     Ref paddingInlineEndAndBlock = CSSPrimitiveValue::create(standardTextControlBlockPaddingEm, CSSUnitType::CSS_EM);
     Ref document = element->document();
 
-    auto usedZoom = style.usedZoomForLength().value;
-    const auto paddingInlineStartPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInlineStart->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) / usedZoom };
-    const auto paddingInlineEndAndBlockPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInlineEndAndBlock->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) / usedZoom };
+    const auto paddingInlineStartPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInlineStart->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) };
+    const auto paddingInlineEndAndBlockPixels = Style::PaddingEdge::Fixed { static_cast<float>(paddingInlineEndAndBlock->resolveAsLength<int>({ style, document->renderStyle(), nullptr, document->renderView() })) };
 
     Style::PaddingBox paddingBox { paddingInlineEndAndBlockPixels };
     paddingBox.setStart(paddingInlineStartPixels, style.writingMode());
@@ -2127,7 +2125,7 @@ bool RenderThemeCocoa::adjustTextFieldStyleForVectorBasedControls(RenderStyle& s
 
 #if PLATFORM(IOS_FAMILY)
     if (RefPtr input = dynamicDowncast<HTMLInputElement>(*element); input && input->hasDataList())
-        applyPaddingIfNotExplicitlySet(style, { 1_css_px / style.usedZoomForLength().value });
+        applyPaddingIfNotExplicitlySet(style, { 1_css_px });
     else
         applyEmPadding(style, element, standardTextControlInlinePaddingEm, standardTextControlBlockPaddingEm);
 #else
@@ -2430,7 +2428,7 @@ static void applyCommonButtonPaddingToStyleForVectorBasedControls(RenderStyle& s
     Document& document = element.document();
     Ref emSize = CSSPrimitiveValue::create(0.5, CSSUnitType::CSS_EM);
     // We don't need this element's parent style to calculate `em` units, so it's okay to pass nullptr for it here.
-    auto pixels = Style::PaddingEdge::Fixed { static_cast<float>(emSize->resolveAsLength<int>({ style, document.renderStyle(), nullptr, document.renderView() })) / style.usedZoomForLength().value };
+    auto pixels = Style::PaddingEdge::Fixed { static_cast<float>(emSize->resolveAsLength<int>({ style, document.renderStyle(), nullptr, document.renderView() })) / style.usedZoom() };
 
     auto paddingBox = Style::PaddingBox { 0_css_px, pixels, 0_css_px, pixels };
     if (!style.writingMode().isHorizontal())
@@ -2495,7 +2493,7 @@ static void adjustInputElementButtonStyleForVectorBasedControls(RenderStyle& sty
     ASSERT(estimatedMaximumWidth >= 0);
 
     if (estimatedMaximumWidth > 0) {
-        style.setLogicalMinWidth(Style::MinimumSize::Fixed { std::ceil(estimatedMaximumWidth) / style.usedZoomForLength().value });
+        style.setLogicalMinWidth(Style::MinimumSize::Fixed { std::ceil(estimatedMaximumWidth) });
         style.setBoxSizing(BoxSizing::ContentBox);
     }
 }
@@ -2626,8 +2624,7 @@ bool RenderThemeCocoa::adjustButtonStyleForVectorBasedControls(RenderStyle& styl
 
     auto paddingBox = Style::PaddingBox { 0_css_px, pixels, 0_css_px, pixels };
 #else
-    auto usedZoom = style.usedZoomForLength().value;
-    auto paddingBox = Style::PaddingBox { 0_css_px, 6_css_px / usedZoom, 1_css_px / usedZoom, 6_css_px / usedZoom };
+    auto paddingBox = Style::PaddingBox { 0_css_px, 6_css_px, 1_css_px, 6_css_px };
 #endif
     if (!style.writingMode().isHorizontal())
         paddingBox = { paddingBox.left(), paddingBox.top(), paddingBox.right(), paddingBox.bottom() };
@@ -2735,7 +2732,7 @@ bool RenderThemeCocoa::paintMenuListButtonDecorationsForVectorBasedControls(cons
     }
 
     Ref emSize = CSSPrimitiveValue::create(1.0, CSSUnitType::CSS_EM);
-    const auto emPixels = emSize->resolveAsLength<float>({ style, nullptr, nullptr, nullptr });
+    const auto emPixels = emSize->resolveAsLength<float>(conversionDataForStyle(style));
     const auto glyphScale = 0.55f * emPixels / glyphSize.width();
     glyphSize = glyphScale * glyphSize;
 
