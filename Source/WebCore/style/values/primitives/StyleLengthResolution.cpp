@@ -41,22 +41,9 @@
 #include "RenderStyle.h"
 #include "RenderStyleInlines.h"
 #include "RenderView.h"
-#include "StylePrimitiveNumericTypes+Conversions.h"
 
 namespace WebCore {
 namespace Style {
-
-static double adjustValueForPageZoom(double dimension, const CSSToLengthConversionData& conversionData)
-{
-    if (conversionData.rangeZoomOption() != CSS::RangeZoomOptions::Unzoomed)
-        return dimension;
-
-    auto* style = conversionData.style();
-    if (!style || !evaluationTimeZoomEnabled(*style))
-        return dimension;
-
-    return dimension / conversionData.renderView()->zoomFactor();
-}
 
 static double lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis logicalAxis, const FloatSize& size, const RenderStyle* style)
 {
@@ -299,76 +286,76 @@ double computeNonCalcLengthDouble(double value, CSS::LengthUnit lengthUnit, cons
     // MARK: "viewport-percentage" resolution
 
     case Vh:
-        return value * adjustValueForPageZoom(conversionData.defaultViewportFactor().height(), conversionData);
+        return value * conversionData.defaultViewportFactor().height();
 
     case Vw:
-        return value * adjustValueForPageZoom(conversionData.defaultViewportFactor().width(), conversionData);
+        return value * conversionData.defaultViewportFactor().width();
 
     case Vmax:
-        return value * adjustValueForPageZoom(conversionData.defaultViewportFactor().maxDimension(), conversionData);
+        return value * conversionData.defaultViewportFactor().maxDimension();
 
     case Vmin:
-        return value * adjustValueForPageZoom(conversionData.defaultViewportFactor().minDimension(), conversionData);
+        return value * conversionData.defaultViewportFactor().minDimension();
 
     case Vb:
-        return value * adjustValueForPageZoom(lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Block, conversionData.defaultViewportFactor(), conversionData.style()), conversionData);
+        return value * lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Block, conversionData.defaultViewportFactor(), conversionData.style());
 
     case Vi:
-        return value * adjustValueForPageZoom(lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Inline, conversionData.defaultViewportFactor(), conversionData.style()), conversionData);
+        return value * lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Inline, conversionData.defaultViewportFactor(), conversionData.style());
 
     case Svh:
-        return value * adjustValueForPageZoom(conversionData.smallViewportFactor().height(), conversionData);
+        return value * conversionData.smallViewportFactor().height();
 
     case Svw:
-        return value * adjustValueForPageZoom(conversionData.smallViewportFactor().width(), conversionData);
+        return value * conversionData.smallViewportFactor().width();
 
     case Svmax:
-        return value * adjustValueForPageZoom(conversionData.smallViewportFactor().maxDimension(), conversionData);
+        return value * conversionData.smallViewportFactor().maxDimension();
 
     case Svmin:
-        return value * adjustValueForPageZoom(conversionData.smallViewportFactor().minDimension(), conversionData);
+        return value * conversionData.smallViewportFactor().minDimension();
 
     case Svb:
-        return value * adjustValueForPageZoom(lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Block, conversionData.smallViewportFactor(), conversionData.style()), conversionData);
+        return value * lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Block, conversionData.smallViewportFactor(), conversionData.style());
 
     case Svi:
-        return value * adjustValueForPageZoom(lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Inline, conversionData.smallViewportFactor(), conversionData.style()), conversionData);
+        return value * lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Inline, conversionData.smallViewportFactor(), conversionData.style());
 
     case Lvh:
-        return value * adjustValueForPageZoom(conversionData.largeViewportFactor().height(), conversionData);
+        return value * conversionData.largeViewportFactor().height();
 
     case Lvw:
-        return value * adjustValueForPageZoom(conversionData.largeViewportFactor().width(), conversionData);
+        return value * conversionData.largeViewportFactor().width();
 
     case Lvmax:
-        return value * adjustValueForPageZoom(conversionData.largeViewportFactor().maxDimension(), conversionData);
+        return value * conversionData.largeViewportFactor().maxDimension();
 
     case Lvmin:
-        return value * adjustValueForPageZoom(conversionData.largeViewportFactor().minDimension(), conversionData);
+        return value * conversionData.largeViewportFactor().minDimension();
 
     case Lvb:
-        return value * adjustValueForPageZoom(lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Block, conversionData.largeViewportFactor(), conversionData.style()), conversionData);
+        return value * lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Block, conversionData.largeViewportFactor(), conversionData.style());
 
     case Lvi:
-        return value * adjustValueForPageZoom(lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Inline, conversionData.largeViewportFactor(), conversionData.style()), conversionData);
+        return value * lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Inline, conversionData.largeViewportFactor(), conversionData.style());
 
     case Dvh:
-        return value * adjustValueForPageZoom(conversionData.dynamicViewportFactor().height(), conversionData);
+        return value * conversionData.dynamicViewportFactor().height();
 
     case Dvw:
-        return value * adjustValueForPageZoom(conversionData.dynamicViewportFactor().width(), conversionData);
+        return value * conversionData.dynamicViewportFactor().width();
 
     case Dvmax:
-        return value * adjustValueForPageZoom(conversionData.dynamicViewportFactor().maxDimension(), conversionData);
+        return value * conversionData.dynamicViewportFactor().maxDimension();
 
     case Dvmin:
-        return value * adjustValueForPageZoom(conversionData.dynamicViewportFactor().minDimension(), conversionData);
+        return value * conversionData.dynamicViewportFactor().minDimension();
 
     case Dvb:
-        return value * adjustValueForPageZoom(lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Block, conversionData.dynamicViewportFactor(), conversionData.style()), conversionData);
+        return value * lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Block, conversionData.dynamicViewportFactor(), conversionData.style());
 
     case Dvi:
-        return value * adjustValueForPageZoom(lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Inline, conversionData.dynamicViewportFactor(), conversionData.style()), conversionData);
+        return value * lengthOfViewportPhysicalAxisForLogicalAxis(LogicalBoxAxis::Inline, conversionData.dynamicViewportFactor(), conversionData.style());
 
     // MARK: "container-percentage" resolution
 
