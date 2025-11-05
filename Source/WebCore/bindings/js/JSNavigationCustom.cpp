@@ -32,6 +32,10 @@ template<typename Visitor>
 void JSNavigation::visitAdditionalChildren(Visitor& visitor)
 {
     wrapped().visitAdditionalChildren(visitor);
+
+    // We cannot ref the event on the GC thread.
+    SUPPRESS_UNCOUNTED_ARG if (auto* event = wrapped().ongoingNavigateEvent())
+        addWebCoreOpaqueRoot(visitor, event);
 }
 
 DEFINE_VISIT_ADDITIONAL_CHILDREN(JSNavigation);
