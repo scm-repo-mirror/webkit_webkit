@@ -496,99 +496,39 @@ void RenderView::repaintRootContents()
     repaintUsingContainer(repaintContainer.get(), computeRectForRepaint(layoutOverflowRect(), repaintContainer.get()));
 }
 
-void RenderView::repaintViewRectangle(const LayoutRect& repaintRect)
+void RenderView::repaintViewRectangle(const LayoutRect& repaintRect) const
 {
     if (!shouldRepaint(repaintRect))
         return;
 
     // FIXME: enclosingRect is needed as long as we integral snap ScrollView/FrameView/RenderWidget size/position.
     auto enclosingRect = enclosingIntRect(repaintRect);
-    auto viewRect = this->viewRect();
-
     Ref document = this->document();
     if (RefPtr ownerElement = document->ownerElement()) {
         auto* ownerBox = ownerElement->renderBox();
         if (!ownerBox)
             return;
 
-        auto adjustedRect = intersection(enclosingRect, viewRect);
+        auto viewRect = LayoutRect { this->viewRect() };
+#if PLATFORM(IOS_FAMILY)
+        // Don't clip using the visible rect since clipping is handled at a higher level on iPhone.
+        // FIXME: This statement is wrong for iframes.
+        LayoutRect adjustedRect = enclosingRect;
+#else
+        LayoutRect adjustedRect = intersection(enclosingRect, viewRect);
+#endif
         if (adjustedRect.isEmpty())
             return;
 
-        if (m_accumulatedRepaintRegion) {
-            bool entireViewDirty = accumulateRepaintRect(enclosingIntRect(adjustedRect), enclosingIntRect(viewRect));
-            if (entireViewDirty)
-                frameView().layoutContext().setNeedsFullRepaint();
-        } else {
-            if (adjustedRect == viewRect) {
-                // We know this RenderView isn't composited here, which means it has no composited descendants, so it's OK to trigger `setNeedsFullRepaint`
-                // which would otherwise force all compositing layers to repaint.
-                ASSERT(!isComposited());
-                frameView().layoutContext().setNeedsFullRepaint();
-            }
-
-            adjustedRect.moveBy(-viewRect.location());
-            adjustedRect.moveBy(ownerBox->contentBoxRect().location());
-
-            // A dirty rect in an iframe is relative to the contents of that iframe.
-            // When we traverse between parent frames and child frames, we need to make sure
-            // that the coordinate system is mapped appropriately between the iframe's contents
-            // and the Renderer that contains the iframe. This transformation must account for a
-            // left scrollbar (if one exists).
-            Ref frameView = this->frameView();
-            if (frameView->verticalScrollbar() && frameView->shouldPlaceVerticalScrollbarOnLeft())
-                adjustedRect.move(LayoutSize(frameView->protectedVerticalScrollbar()->occupiedWidth(), 0));
-
-            ownerBox->repaintRectangle(adjustedRect);
-        }
-        return;
-    }
-
-    frameView().addTrackedRepaintRect(snapRectToDevicePixels(repaintRect, document->deviceScaleFactor()));
-
-    if (m_accumulatedRepaintRegion)
-        accumulateRepaintRect(enclosingRect, enclosingIntRect(viewRect));
-    else
-        frameView().repaintContentRectangle(enclosingRect);
-}
-
-bool RenderView::accumulateRepaintRect(IntRect rect, IntRect viewRect)
-{
-    m_accumulatedRepaintRegion->unite(rect);
-
-    bool entireViewDirty = false;
-    // Region will get slow if it gets too complex. Merge all rects so far to bounds if this happens.
-    // FIXME: Maybe there should be a region type that does this automatically.
-    static const unsigned maximumRepaintRegionGridSize = 16 * 16;
-    if (m_accumulatedRepaintRegion->gridSize() > maximumRepaintRegionGridSize) {
-        auto dirtyBounds = m_accumulatedRepaintRegion->bounds();
-        auto dirtyArea = dirtyBounds.area<RecordOverflow>();
-        auto viewArea = viewRect.area<RecordOverflow>();
-        static constexpr auto dirtyEntireViewThreshold = 0.75f; // Derived empirically.
-        if (!dirtyArea.hasOverflowed() && !viewArea.hasOverflowed() && dirtyArea.value() >= viewArea.value() * dirtyEntireViewThreshold) {
-            dirtyBounds = viewRect;
-            entireViewDirty = true;
+        if (adjustedRect == viewRect) {
+            // We know this RenderView isn't composited here, which means it has no composited descendants, so it's OK to trigger `setNeedsFullRepaint`
+            // which would otherwise force all compositing layers to repaint.
+            ASSERT(!isComposited());
+            frameView().layoutContext().setNeedsFullRepaint();
         }
 
-        m_accumulatedRepaintRegion = makeUnique<Region>(dirtyBounds);
-    } else
-        entireViewDirty = rect.contains(viewRect);
-
-    return entireViewDirty;
-}
-
-void RenderView::flushAccumulatedRepaintRegion() const
-{
-    IntSize rectOffset;
-
-    CheckedPtr<RenderBox> iframeOwnerRenderer;
-    if (RefPtr ownerElement = protectedDocument()->ownerElement()) {
-        iframeOwnerRenderer = ownerElement->renderBox();
-        if (!iframeOwnerRenderer)
-            return;
-
-        auto viewRect = this->viewRect();
-        auto rectOffsetLayoutSize = toLayoutSize(-viewRect.location() + iframeOwnerRenderer->contentBoxRect().location());
+        adjustedRect.moveBy(-viewRect.location());
+        adjustedRect.moveBy(ownerBox->contentBoxRect().location());
 
         // A dirty rect in an iframe is relative to the contents of that iframe.
         // When we traverse between parent frames and child frames, we need to make sure
@@ -597,20 +537,32 @@ void RenderView::flushAccumulatedRepaintRegion() const
         // left scrollbar (if one exists).
         Ref frameView = this->frameView();
         if (frameView->verticalScrollbar() && frameView->shouldPlaceVerticalScrollbarOnLeft())
-            rectOffsetLayoutSize += LayoutSize { frameView->protectedVerticalScrollbar()->occupiedWidth(), 0 };
+            adjustedRect.move(LayoutSize(frameView->protectedVerticalScrollbar()->occupiedWidth(), 0));
 
-        rectOffset = roundedIntSize(rectOffsetLayoutSize);
+        ownerBox->repaintRectangle(adjustedRect);
+        return;
     }
 
+    frameView().addTrackedRepaintRect(snapRectToDevicePixels(repaintRect, document->deviceScaleFactor()));
+    if (!m_accumulatedRepaintRegion) {
+        frameView().repaintContentRectangle(enclosingRect);
+        return;
+    }
+    m_accumulatedRepaintRegion->unite(enclosingRect);
+
+    // Region will get slow if it gets too complex. Merge all rects so far to bounds if this happens.
+    // FIXME: Maybe there should be a region type that does this automatically.
+    static const unsigned maximumRepaintRegionGridSize = 16 * 16;
+    if (m_accumulatedRepaintRegion->gridSize() > maximumRepaintRegionGridSize)
+        m_accumulatedRepaintRegion = makeUnique<Region>(m_accumulatedRepaintRegion->bounds());
+}
+
+void RenderView::flushAccumulatedRepaintRegion() const
+{
     ASSERT(m_accumulatedRepaintRegion);
     auto repaintRects = m_accumulatedRepaintRegion->rects();
-    for (auto rect : repaintRects) {
-        if (iframeOwnerRenderer) {
-            rect.move(rectOffset);
-            iframeOwnerRenderer->repaintRectangle(rect);
-        } else
-            frameView().repaintContentRectangle(rect);
-    }
+    for (auto& rect : repaintRects)
+        frameView().repaintContentRectangle(rect);
     m_accumulatedRepaintRegion = nullptr;
 }
 
@@ -1086,19 +1038,22 @@ RenderView::RepaintRegionAccumulator::RepaintRegionAccumulator(RenderView* view)
     if (!view)
         return;
 
+    if (!view->protectedDocument()->isTopDocument())
+        return;
+
     m_wasAccumulatingRepaintRegion = !!view->m_accumulatedRepaintRegion;
     if (!m_wasAccumulatingRepaintRegion)
         view->m_accumulatedRepaintRegion = makeUnique<Region>();
-    m_view = *view;
+    m_rootView = *view;
 }
 
 RenderView::RepaintRegionAccumulator::~RepaintRegionAccumulator()
 {
     if (m_wasAccumulatingRepaintRegion)
         return;
-    if (!m_view)
+    if (!m_rootView)
         return;
-    m_view->flushAccumulatedRepaintRegion();
+    m_rootView->flushAccumulatedRepaintRegion();
 }
 
 unsigned RenderView::pageNumberForBlockProgressionOffset(int offset) const
