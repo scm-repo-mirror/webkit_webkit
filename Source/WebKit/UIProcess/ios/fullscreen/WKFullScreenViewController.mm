@@ -252,6 +252,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     _playbackClient.setParent(nullptr);
     _playbackClient.setInterface(nullptr);
+    [self.delegate fullScreenViewControllerDidInvalidate:self];
 }
 
 - (void)dealloc
@@ -439,7 +440,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 #endif
 }
 
-- (RefPtr<WebCore::PlatformVideoPresentationInterface>) _bestVideoPresentationInterface
+- (RefPtr<WebCore::PlatformVideoPresentationInterface>)_bestVideoPresentationInterface
 {
     ASSERT(_valid);
     RefPtr page = [self._webView _page].get();
@@ -487,6 +488,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     if (!page || !page->preferences().linearMediaPlayerEnabled() || page->fullscreenClient().preventDocking(page.get())) {
         [self _removeEnvironmentPickerButtonView];
         [self _removeEnvironmentFullscreenVideoButtonView];
+        [self.delegate fullScreenViewController:self bestVideoPresentationInterfaceDidChange:nullptr];
         return;
     }
 
@@ -496,8 +498,11 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     if (!playbackSessionModel || !playbackSessionModel->supportsLinearMediaPlayer()) {
         [self _removeEnvironmentPickerButtonView];
         [self _removeEnvironmentFullscreenVideoButtonView];
+        [self.delegate fullScreenViewController:self bestVideoPresentationInterfaceDidChange:nullptr];
         return;
     }
+
+    [self.delegate fullScreenViewController:self bestVideoPresentationInterfaceDidChange:videoPresentationInterface.get()];
 
     if (RetainPtr mediaPlayer = playbackSessionInterface->linearMediaPlayer(); [mediaPlayer spatialVideoMetadata] || [mediaPlayer isImmersiveVideo]) {
         [self _setTopButtonLabel:[mediaPlayer isImmersiveVideo] ? WebCore::fullscreenControllerViewImmersive() : WebCore::fullscreenControllerViewSpatial()];
@@ -1010,7 +1015,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
     return insets;
 }
 
-- (RefPtr<WebCore::PlatformPlaybackSessionInterface>) _playbackSessionInterface
+- (RefPtr<WebCore::PlatformPlaybackSessionInterface>)_playbackSessionInterface
 {
     auto page = [self._webView _page];
     if (!page)
@@ -1065,11 +1070,14 @@ ALLOW_DEPRECATED_DECLARATIONS_END
         playbackSessionModel->togglePictureInPicture();
 }
 
+#if PLATFORM(VISION)
 - (void)_enterVideoFullscreenAction:(id)sender
 {
     RefPtr presentationInterface = [self _bestVideoPresentationInterface];
     if (!presentationInterface)
         return;
+
+    [self.delegate fullScreenViewController:self bestVideoPresentationInterfaceDidChange:presentationInterface.get()];
 
     [self hideUI];
 
@@ -1079,6 +1087,7 @@ ALLOW_DEPRECATED_DECLARATIONS_END
 
     playbackSessionModel->enterFullscreen();
 }
+#endif
 
 - (void)_touchDetected:(id)sender
 {
