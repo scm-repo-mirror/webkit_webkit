@@ -6762,8 +6762,10 @@ void WebPageProxy::generatePageLoadingTimingSoon()
         return;
     lastTimestamp = std::max(lastTimestamp, m_pageLoadTiming->allSubresourcesFinishedLoading());
 
-    // Stop waiting for page load to end 100 ms after the last of the timestamps we care about.
-    Seconds interval = std::max(0_ms, lastTimestamp + 100_ms - WallTime::now());
+    // Stop waiting for page load to end N ms after the last of the timestamps we care about, where
+    // N is the quiescence interval passed in by the client.
+    auto quiescenceInterval = m_configuration->processPool().pltResourceDelayInterval();
+    Seconds interval = std::max(0_ms, lastTimestamp + quiescenceInterval - WallTime::now());
     m_generatePageLoadTimingTimer.startOneShot(interval);
 }
 
