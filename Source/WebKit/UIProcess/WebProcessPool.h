@@ -644,6 +644,9 @@ public:
     void initializeAccessibilityIfNecessary();
 #endif
 
+    void setPLTResourceDelayInterval(Seconds interval) { m_pltResourceDelayInterval = interval; }
+    Seconds pltResourceDelayInterval() const { return m_pltResourceDelayInterval; }
+
 private:
     enum class NeedsGlobalStaticInitialization : bool { No, Yes };
     void platformInitialize(NeedsGlobalStaticInitialization);
@@ -1046,6 +1049,8 @@ private:
 
     bool m_hasReceivedAXRequestInUIProcess { false };
     bool m_suppressEDR { false };
+
+    Seconds m_pltResourceDelayInterval { 100_ms };
 };
 
 template<typename T>
