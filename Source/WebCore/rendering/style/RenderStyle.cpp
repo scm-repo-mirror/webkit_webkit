@@ -82,7 +82,6 @@ namespace WebCore {
 struct SameSizeAsBorderValue {
     Style::Color m_color;
     float m_width;
-    bool m_isKeyword;
     int m_restBits;
 };
 
@@ -425,11 +424,6 @@ void RenderStyle::setEnableEvaluationTimeZoom(bool value)
     SET_VAR(m_rareInheritedData, enableEvaluationTimeZoom, value);
 }
 
-void RenderStyle::setDeviceScaleFactor(float value)
-{
-    SET_VAR(m_rareInheritedData, deviceScaleFactor, value);
-}
-
 void RenderStyle::setUseSVGZoomRulesForLength(bool value)
 {
     SET_NESTED_VAR(m_nonInheritedData, rareData, useSVGZoomRulesForLength, value);
@@ -642,7 +636,7 @@ bool RenderStyle::isIdempotentTextAutosizingCandidate(AutosizeStatus status) con
                 if (auto fixedHeight = height().tryFixed(); specifiedLineHeight().isFixed() && fixedHeight) {
                     if (auto fixedSpecifiedLineHeight = specifiedLineHeight().tryFixed()) {
                         float specifiedSize = specifiedFontSize();
-                        if (fixedSpecifiedLineHeight->resolveZoom(Style::ZoomFactor { 1.0f, deviceScaleFactor() }) - specifiedSize > smallMinimumDifferenceThresholdBetweenLineHeightAndSpecifiedFontSizeForBoostingText
+                        if (fixedSpecifiedLineHeight->resolveZoom(Style::ZoomFactor { 1.0f }) - specifiedSize > smallMinimumDifferenceThresholdBetweenLineHeightAndSpecifiedFontSizeForBoostingText
                                 && fixedHeight->resolveZoom(Style::ZoomNeeded { }) - specifiedSize > smallMinimumDifferenceThresholdBetweenLineHeightAndSpecifiedFontSizeForBoostingText)
                             return true;
                     }
@@ -3215,20 +3209,20 @@ static LayoutUnit computeOutset(const OutsetValue& outsetValue, LayoutUnit borde
 LayoutBoxExtent RenderStyle::imageOutsets(const Style::BorderImage& image) const
 {
     return {
-        computeOutset(image.outset().values.top(), Style::evaluate<LayoutUnit>(borderTopWidth(), usedZoomForLength())),
-        computeOutset(image.outset().values.right(), Style::evaluate<LayoutUnit>(borderRightWidth(), usedZoomForLength())),
-        computeOutset(image.outset().values.bottom(), Style::evaluate<LayoutUnit>(borderBottomWidth(), usedZoomForLength())),
-        computeOutset(image.outset().values.left(), Style::evaluate<LayoutUnit>(borderLeftWidth(), usedZoomForLength())),
+        computeOutset(image.outset().values.top(), Style::evaluate<LayoutUnit>(borderTopWidth(), Style::ZoomNeeded { })),
+        computeOutset(image.outset().values.right(), Style::evaluate<LayoutUnit>(borderRightWidth(), Style::ZoomNeeded { })),
+        computeOutset(image.outset().values.bottom(), Style::evaluate<LayoutUnit>(borderBottomWidth(), Style::ZoomNeeded { })),
+        computeOutset(image.outset().values.left(), Style::evaluate<LayoutUnit>(borderLeftWidth(), Style::ZoomNeeded { })),
     };
 }
 
 LayoutBoxExtent RenderStyle::imageOutsets(const Style::MaskBorder& image) const
 {
     return {
-        computeOutset(image.outset().values.top(), Style::evaluate<LayoutUnit>(borderTopWidth(), usedZoomForLength())),
-        computeOutset(image.outset().values.right(), Style::evaluate<LayoutUnit>(borderRightWidth(), usedZoomForLength())),
-        computeOutset(image.outset().values.bottom(), Style::evaluate<LayoutUnit>(borderBottomWidth(), usedZoomForLength())),
-        computeOutset(image.outset().values.left(), Style::evaluate<LayoutUnit>(borderLeftWidth(), usedZoomForLength())),
+        computeOutset(image.outset().values.top(), Style::evaluate<LayoutUnit>(borderTopWidth(), Style::ZoomNeeded { })),
+        computeOutset(image.outset().values.right(), Style::evaluate<LayoutUnit>(borderRightWidth(), Style::ZoomNeeded { })),
+        computeOutset(image.outset().values.bottom(), Style::evaluate<LayoutUnit>(borderBottomWidth(), Style::ZoomNeeded { })),
+        computeOutset(image.outset().values.left(), Style::evaluate<LayoutUnit>(borderLeftWidth(), Style::ZoomNeeded { })),
     };
 }
 
@@ -3525,7 +3519,7 @@ Style::LineWidth RenderStyle::outlineWidth() const
     if (outline.style() == OutlineStyle::None)
         return 0_css_px;
     if (outlineStyle() == OutlineStyle::Auto)
-        return Style::LineWidth { std::max(Style::evaluate<float>(outline.width(), usedZoomForLength()), RenderTheme::platformFocusRingWidth()) };
+        return Style::LineWidth { std::max(Style::evaluate<float>(outline.width(), Style::ZoomNeeded { }), RenderTheme::platformFocusRingWidth()) };
     return outline.width();
 }
 
@@ -3533,13 +3527,13 @@ Style::Length<> RenderStyle::outlineOffset() const
 {
     auto& outline = m_nonInheritedData->backgroundData->outline;
     if (outlineStyle() == OutlineStyle::Auto)
-        return Style::Length<> { Style::evaluate<float>(outline.offset(), Style::ZoomNeeded { }) + RenderTheme::platformFocusRingOffset(Style::evaluate<float>(outline.width(), usedZoomForLength())) };
+        return Style::Length<> { Style::evaluate<float>(outline.offset(), Style::ZoomNeeded { }) + RenderTheme::platformFocusRingOffset(Style::evaluate<float>(outline.width(), Style::ZoomNeeded { })) };
     return outline.offset();
 }
 
 float RenderStyle::outlineSize() const
 {
-    return std::max(0.0f, Style::evaluate<float>(outlineWidth(), usedZoomForLength()) + Style::evaluate<float>(outlineOffset(), Style::ZoomNeeded { }));
+    return std::max(0.0f, Style::evaluate<float>(outlineWidth(), Style::ZoomNeeded { }) + Style::evaluate<float>(outlineOffset(), Style::ZoomNeeded { }));
 }
 
 CheckedRef<const FontCascade> RenderStyle::checkedFontCascade() const
