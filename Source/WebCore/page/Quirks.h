@@ -275,6 +275,8 @@ public:
 
     bool shouldDisableDOMAudioSessionQuirk() const;
 
+    bool shouldExposeCredentialsContainerQuirk() const;
+
     void determineRelevantQuirks();
 
 private:
