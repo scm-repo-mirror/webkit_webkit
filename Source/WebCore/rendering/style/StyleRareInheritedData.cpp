@@ -79,7 +79,6 @@ DEFINE_ALLOCATOR_WITH_HEAP_IDENTIFIER(StyleRareInheritedData);
 
 StyleRareInheritedData::StyleRareInheritedData()
     : usedZoom(RenderStyle::initialZoom())
-    , deviceScaleFactor(1.0f)
     , listStyleImage(RenderStyle::initialListStyleImage())
     , textStrokeWidth(RenderStyle::initialTextStrokeWidth())
     , textStrokeColor(RenderStyle::initialTextStrokeColor())
@@ -183,7 +182,6 @@ StyleRareInheritedData::StyleRareInheritedData()
 inline StyleRareInheritedData::StyleRareInheritedData(const StyleRareInheritedData& o)
     : RefCounted<StyleRareInheritedData>()
     , usedZoom(o.usedZoom)
-    , deviceScaleFactor(o.deviceScaleFactor)
     , listStyleImage(o.listStyleImage)
     , textStrokeWidth(o.textStrokeWidth)
     , textStrokeColor(o.textStrokeColor)
@@ -397,8 +395,7 @@ bool StyleRareInheritedData::operator==(const StyleRareInheritedData& o) const
         && listStyleImage == o.listStyleImage
         && listStyleType == o.listStyleType
         && blockEllipsis == o.blockEllipsis
-        && enableEvaluationTimeZoom == o.enableEvaluationTimeZoom
-        && deviceScaleFactor == o.deviceScaleFactor;
+        && enableEvaluationTimeZoom == o.enableEvaluationTimeZoom;
 }
 
 bool StyleRareInheritedData::hasColorFilters() const
@@ -412,7 +409,6 @@ void StyleRareInheritedData::dumpDifferences(TextStream& ts, const StyleRareInhe
     customProperties->dumpDifferences(ts, other.customProperties);
 
     LOG_IF_DIFFERENT(usedZoom);
-    LOG_IF_DIFFERENT(deviceScaleFactor);
 
     LOG_IF_DIFFERENT(listStyleImage);
 

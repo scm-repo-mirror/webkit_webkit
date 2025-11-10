@@ -1806,9 +1806,6 @@ public:
     inline bool enableEvaluationTimeZoom() const;
     void setEnableEvaluationTimeZoom(bool);
 
-    inline float deviceScaleFactor() const;
-    void setDeviceScaleFactor(float);
-
     inline bool useSVGZoomRulesForLength() const;
     void setUseSVGZoomRulesForLength(bool);
 

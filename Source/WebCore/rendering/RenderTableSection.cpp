@@ -738,7 +738,7 @@ LayoutUnit RenderTableSection::calcBlockDirectionOuterBorder(BlockBorderSide sid
     if (!m_grid.size() || !totalCols)
         return 0;
 
-    float borderWidth = 0;
+    Style::LineWidth borderWidth { 0_css_px };
 
     auto writingMode = table()->writingMode();
     const BorderValue& sectionBorder = (side == BlockBorderSide::BorderBefore) ? style().borderBefore(writingMode) : style().borderAfter(writingMode);
@@ -746,20 +746,16 @@ LayoutUnit RenderTableSection::calcBlockDirectionOuterBorder(BlockBorderSide sid
         return -1;
 
     if (sectionBorder.style() > BorderStyle::Hidden)
-        borderWidth = Style::evaluate<float>(sectionBorder.width(), style().usedZoomForLength());
+        borderWidth = sectionBorder.width();
 
     const RenderTableRow* row = (side == BlockBorderSide::BorderBefore) ? firstRow() : lastRow();
-    auto& rowStyle = row->style();
-    const BorderValue& rowBorder = (side == BlockBorderSide::BorderBefore) ? rowStyle.borderBefore(writingMode) : rowStyle.borderAfter(writingMode);
+    const BorderValue& rowBorder = (side == BlockBorderSide::BorderBefore) ? row->style().borderBefore(writingMode) : row->style().borderAfter(writingMode);
 
     if (rowBorder.style() == BorderStyle::Hidden)
         return -1;
 
-    if (rowBorder.style() > BorderStyle::Hidden) {
-        float rowBorderWidth = Style::evaluate<float>(rowBorder.width(), rowStyle.usedZoomForLength());
-        if (rowBorderWidth > borderWidth)
-            borderWidth = rowBorderWidth;
-    }
+    if (rowBorder.style() > BorderStyle::Hidden && rowBorder.width() > borderWidth)
+        borderWidth = rowBorder.width();
 
     bool allHidden = true;
     unsigned rowIndex = (side == BlockBorderSide::BorderBefore) ? 0 : (m_grid.size() - 1);
@@ -769,45 +765,34 @@ LayoutUnit RenderTableSection::calcBlockDirectionOuterBorder(BlockBorderSide sid
             continue;
 
         // FIXME: Make this work with perpendicular and flipped cells.
-        auto& cellBorderStyle = current.primaryCell()->style();
-        const BorderValue& cellBorder = (side == BlockBorderSide::BorderBefore) ? cellBorderStyle.borderBefore(writingMode) : cellBorderStyle.borderAfter(writingMode);
+        const BorderValue& cellBorder = (side == BlockBorderSide::BorderBefore) ? current.primaryCell()->style().borderBefore(writingMode) : current.primaryCell()->style().borderAfter(writingMode);
 
         // FIXME: Don't repeat for the same col group
         RenderTableCol* colGroup = table()->colElement(c);
         if (colGroup) {
-            auto& colGroupStyle = colGroup->style();
-            const BorderValue& colBorder = (side == BlockBorderSide::BorderBefore) ? colGroupStyle.borderBefore(writingMode) : colGroupStyle.borderAfter(writingMode);
+            const BorderValue& colBorder = (side == BlockBorderSide::BorderBefore) ? colGroup->style().borderBefore(writingMode) : colGroup->style().borderAfter(writingMode);
             if (colBorder.style() == BorderStyle::Hidden || cellBorder.style() == BorderStyle::Hidden)
                 continue;
 
             allHidden = false;
 
-            if (colBorder.style() > BorderStyle::Hidden) {
-                float colBorderWidth = Style::evaluate<float>(colBorder.width(), colGroupStyle.usedZoomForLength());
-                if (colBorderWidth > borderWidth)
-                    borderWidth = colBorderWidth;
-            }
-            if (cellBorder.style() > BorderStyle::Hidden) {
-                float cellBorderWidth = Style::evaluate<float>(cellBorder.width(), cellBorderStyle.usedZoomForLength());
-                if (cellBorderWidth > borderWidth)
-                    borderWidth = cellBorderWidth;
-            }
+            if (colBorder.style() > BorderStyle::Hidden && colBorder.width() > borderWidth)
+                borderWidth = colBorder.width();
+            if (cellBorder.style() > BorderStyle::Hidden && cellBorder.width() > borderWidth)
+                borderWidth = cellBorder.width();
         } else {
             if (cellBorder.style() == BorderStyle::Hidden)
                 continue;
             allHidden = false;
 
-            if (cellBorder.style() > BorderStyle::Hidden) {
-                float cellBorderWidth = Style::evaluate<float>(cellBorder.width(), cellBorderStyle.usedZoomForLength());
-                if (cellBorderWidth > borderWidth)
-                    borderWidth = cellBorderWidth;
-            }
+            if (cellBorder.style() > BorderStyle::Hidden && cellBorder.width() > borderWidth)
+                borderWidth = cellBorder.width();
         }
     }
 
     if (allHidden)
         return -1;
-    return CollapsedBorderValue::adjustedCollapsedBorderWidth(borderWidth, document().deviceScaleFactor(), (side == BlockBorderSide::BorderAfter));
+    return CollapsedBorderValue::adjustedCollapsedBorderWidth(Style::evaluate<float>(borderWidth, Style::ZoomNeeded { }), document().deviceScaleFactor(), (side == BlockBorderSide::BorderAfter));
 }
 
 LayoutUnit RenderTableSection::calcInlineDirectionOuterBorder(InlineBorderSide side) const
@@ -816,7 +801,7 @@ LayoutUnit RenderTableSection::calcInlineDirectionOuterBorder(InlineBorderSide s
     if (!m_grid.size() || !totalCols)
         return 0;
 
-    float borderWidth = 0;
+    Style::LineWidth borderWidth { 0_css_px };
     auto writingMode = table()->writingMode();
 
     const BorderValue& sectionBorder = (side == InlineBorderSide::BorderStart) ? style().borderStart(writingMode) : style().borderEnd(writingMode);
@@ -824,21 +809,17 @@ LayoutUnit RenderTableSection::calcInlineDirectionOuterBorder(InlineBorderSide s
         return -1;
 
     if (sectionBorder.style() > BorderStyle::Hidden)
-        borderWidth = Style::evaluate<float>(sectionBorder.width(), style().usedZoomForLength());
+        borderWidth = sectionBorder.width();
 
     unsigned colIndex = (side == InlineBorderSide::BorderStart) ? 0 : (totalCols - 1);
     if (RenderTableCol* colGroup = table()->colElement(colIndex)) {
-        auto& colGroupStyle = colGroup->style();
-        const BorderValue& colBorder = (side == InlineBorderSide::BorderStart) ? colGroupStyle.borderStart(writingMode) : colGroupStyle.borderEnd(writingMode);
+        const BorderValue& colBorder = (side == InlineBorderSide::BorderStart) ? colGroup->style().borderStart(writingMode) : colGroup->style().borderEnd(writingMode);
 
         if (colBorder.style() == BorderStyle::Hidden)
             return -1;
 
-        if (colBorder.style() > BorderStyle::Hidden) {
-            float colBorderWidth = Style::evaluate<float>(colBorder.width(), colGroupStyle.usedZoomForLength());
-            if (colBorderWidth > borderWidth)
-                borderWidth = colBorderWidth;
-        }
+        if (colBorder.style() > BorderStyle::Hidden && colBorder.width() > borderWidth)
+            borderWidth = colBorder.width();
     }
 
     bool allHidden = true;
@@ -848,32 +829,24 @@ LayoutUnit RenderTableSection::calcInlineDirectionOuterBorder(InlineBorderSide s
             continue;
 
         // FIXME: Make this work with perpendicular and flipped cells.
-        auto& cellBorderStyle = current.primaryCell()->style();
-        const BorderValue& cellBorder = (side == InlineBorderSide::BorderStart) ? cellBorderStyle.borderStart(writingMode) : cellBorderStyle.borderEnd(writingMode);
-        auto& rowBorderStyle = current.primaryCell()->parent()->style();
-        const BorderValue& rowBorder = (side == InlineBorderSide::BorderStart) ? rowBorderStyle.borderStart(writingMode) : rowBorderStyle.borderEnd(writingMode);
+        const BorderValue& cellBorder = (side == InlineBorderSide::BorderStart) ? current.primaryCell()->style().borderStart(writingMode) : current.primaryCell()->style().borderEnd(writingMode);
+        const BorderValue& rowBorder = (side == InlineBorderSide::BorderStart) ? current.primaryCell()->parent()->style().borderStart(writingMode) : current.primaryCell()->parent()->style().borderEnd(writingMode);
         // FIXME: Don't repeat for the same cell
         if (cellBorder.style() == BorderStyle::Hidden || rowBorder.style() == BorderStyle::Hidden)
             continue;
 
         allHidden = false;
 
-        if (cellBorder.style() > BorderStyle::Hidden) {
-            float cellBorderWidth = Style::evaluate<float>(cellBorder.width(), cellBorderStyle.usedZoomForLength());
-            if (cellBorderWidth > borderWidth)
-                borderWidth = cellBorderWidth;
-        }
+        if (cellBorder.style() > BorderStyle::Hidden && cellBorder.width() > borderWidth)
+            borderWidth = cellBorder.width();
 
-        if (rowBorder.style() > BorderStyle::Hidden) {
-            float rowBorderWidth = Style::evaluate<float>(rowBorder.width(), rowBorderStyle.usedZoomForLength());
-            if (rowBorderWidth > borderWidth)
-                borderWidth = rowBorderWidth;
-        }
+        if (rowBorder.style() > BorderStyle::Hidden && rowBorder.width() > borderWidth)
+            borderWidth = rowBorder.width();
     }
 
     if (allHidden)
         return -1;
-    return CollapsedBorderValue::adjustedCollapsedBorderWidth(borderWidth, document().deviceScaleFactor(), (side == InlineBorderSide::BorderStart) ? writingMode.isInlineFlipped() : !writingMode.isInlineFlipped());
+    return CollapsedBorderValue::adjustedCollapsedBorderWidth(Style::evaluate<float>(borderWidth, Style::ZoomNeeded { }), document().deviceScaleFactor(), (side == InlineBorderSide::BorderStart) ? writingMode.isInlineFlipped() : !writingMode.isInlineFlipped());
 }
 
 void RenderTableSection::recalcOuterBorder()
@@ -1182,7 +1155,7 @@ void RenderTableSection::paintRowGroupBorderIfRequired(const PaintInfo& paintInf
                 paintOffset.x() + offsetLeftForRowGroupBorder(cell, rowGroupRect, row),
                 rowGroupRect.y(),
                 horizontalRowGroupBorderWidth(cell, rowGroupRect, row, column),
-                LayoutUnit { Style::evaluate<float>(style.borderTop().width(), style.usedZoomForLength()) },
+                LayoutUnit { Style::evaluate<float>(style.borderTop().width(), Style::ZoomNeeded { }) },
             },
             BoxSide::Top,
             CSSPropertyBorderTopColor,
@@ -1198,7 +1171,7 @@ void RenderTableSection::paintRowGroupBorderIfRequired(const PaintInfo& paintInf
                 paintOffset.x() + offsetLeftForRowGroupBorder(cell, rowGroupRect, row),
                 rowGroupRect.y() + rowGroupRect.height(),
                 horizontalRowGroupBorderWidth(cell, rowGroupRect, row, column),
-                LayoutUnit { Style::evaluate<float>(style.borderBottom().width(), style.usedZoomForLength()) },
+                LayoutUnit { Style::evaluate<float>(style.borderBottom().width(), Style::ZoomNeeded { }) },
             },
             BoxSide::Bottom,
             CSSPropertyBorderBottomColor,
@@ -1213,7 +1186,7 @@ void RenderTableSection::paintRowGroupBorderIfRequired(const PaintInfo& paintInf
             LayoutRect {
                 rowGroupRect.x(),
                 rowGroupRect.y() + offsetTopForRowGroupBorder(cell, borderSide, row),
-                LayoutUnit { Style::evaluate<float>(style.borderLeft().width(), style.usedZoomForLength()) },
+                LayoutUnit { Style::evaluate<float>(style.borderLeft().width(), Style::ZoomNeeded { }) },
                 verticalRowGroupBorderHeight(cell, rowGroupRect, row),
             },
             BoxSide::Left,
@@ -1229,7 +1202,7 @@ void RenderTableSection::paintRowGroupBorderIfRequired(const PaintInfo& paintInf
             LayoutRect {
                 rowGroupRect.x() + rowGroupRect.width(),
                 rowGroupRect.y() + offsetTopForRowGroupBorder(cell, borderSide, row),
-                LayoutUnit { Style::evaluate<float>(style.borderRight().width(), style.usedZoomForLength()) },
+                LayoutUnit { Style::evaluate<float>(style.borderRight().width(), Style::ZoomNeeded { }) },
                 verticalRowGroupBorderHeight(cell, rowGroupRect, row),
             },
             BoxSide::Right,
@@ -1643,7 +1616,7 @@ CollapsedBorderValue RenderTableSection::cachedCollapsedBorder(const RenderTable
     auto it = m_cellsCollapsedBorders.find(std::make_pair(&cell, side));
     // Only non-empty collapsed borders are in the hashmap.
     if (it == m_cellsCollapsedBorders.end())
-        return CollapsedBorderValue(BorderValue(), Color(), BorderPrecedence::Cell, cell.style().usedZoomForLength());
+        return CollapsedBorderValue(BorderValue(), Color(), BorderPrecedence::Cell);
     return it->value;
 }
 
