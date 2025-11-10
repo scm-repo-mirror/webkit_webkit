@@ -28,10 +28,7 @@
 #include <JavaScriptCore/JSBase.h>
 
 #ifdef __APPLE__
-#include <mach/kern_return.h>
-#include <mach/mach_types.h>
-#include <mach/vm_types.h>
-#include <stddef.h>
+#if OS(DARWIN)
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,5 +75,6 @@ JS_EXPORT void** MARCrashReportBacktraceGetBacktraceBuffer(PASMARCrashReportBack
 }
 #endif
 
+#endif /* OS(DARWIN) */
 #endif /* __APPLE__ */
 
