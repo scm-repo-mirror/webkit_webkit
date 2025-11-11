@@ -1626,6 +1626,8 @@ public:
     bool isModelElementIntersectingViewport(HTMLModelElement&);
 #endif
 
+    bool hasMediaSessionManager() const;
+
 private:
     explicit Internals(Document&);
 
