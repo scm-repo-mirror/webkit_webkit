@@ -278,6 +278,7 @@ private:
 
     using TrackIdentifier = TracksRendererManager::TrackIdentifier;
     TrackIdentifier trackIdentifierFor(TrackID) const;
+    std::optional<TrackIdentifier> maybeTrackIdentifierFor(TrackID) const;
 
     void setLayerRequiresFlush();
     void setAllTracksForReenqueuing();
