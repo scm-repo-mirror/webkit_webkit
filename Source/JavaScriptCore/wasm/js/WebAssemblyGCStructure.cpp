@@ -31,6 +31,8 @@
 
 #if ENABLE(WEBASSEMBLY)
 
+#include "WasmTypeDefinitionInlines.h"
+
 namespace JSC {
 
 static inline Wasm::TypeHash typeHash(const Wasm::TypeDefinition& typeDef)
