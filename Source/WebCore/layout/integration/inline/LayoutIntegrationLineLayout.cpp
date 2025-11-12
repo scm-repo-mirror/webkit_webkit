@@ -750,9 +750,12 @@ void LineLayout::preparePlacedFloats()
     auto placedFloatsIsLeftToRight = placedFloatsWritingMode.isLogicalLeftInlineStart();
     auto isHorizontalWritingMode = placedFloatsWritingMode.isHorizontal();
     for (auto& floatingObject : *flow().floatingObjectSet()) {
+        if (!floatingObject->renderer())
+            continue;
+
         auto& visualRect = floatingObject->frameRect();
 
-        auto usedPosition = RenderStyle::usedFloat(floatingObject->renderer());
+        auto usedPosition = RenderStyle::usedFloat(*floatingObject->renderer());
         auto logicalPosition = (usedPosition == UsedFloat::Left) == placedFloatsIsLeftToRight
             ? Layout::PlacedFloats::Item::Position::Start
             : Layout::PlacedFloats::Item::Position::End;
@@ -779,7 +782,7 @@ void LineLayout::preparePlacedFloats()
         boxGeometry.setHorizontalMargin({ });
         boxGeometry.setVerticalMargin({ });
 
-        auto shapeOutsideInfo = floatingObject->renderer().shapeOutsideInfo();
+        auto shapeOutsideInfo = floatingObject->renderer()->shapeOutsideInfo();
         auto* shape = shapeOutsideInfo ? &shapeOutsideInfo->computedShape() : nullptr;
 
         placedFloats.append({ logicalPosition, boxGeometry, logicalRect.location(), shape });
