@@ -145,8 +145,8 @@ private:
     void endPage() final;
     void setURLForRect(const URL&, const WebCore::FloatRect&) final;
 
-    [[nodiscard]] bool recordResourceUse(WebCore::NativeImage&);
-    [[nodiscard]] bool recordResourceUse(WebCore::ImageBuffer&);
+    bool recordResourceUse(WebCore::NativeImage&);
+    bool recordResourceUse(WebCore::ImageBuffer&);
     bool recordResourceUse(const WebCore::SourceImage&);
     bool recordResourceUse(WebCore::Font&);
     std::optional<RemoteGradientIdentifier> recordResourceUse(WebCore::Gradient&);
