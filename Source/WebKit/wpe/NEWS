@@ -1,4 +1,14 @@
 =================
+WPE WebKit 2.50.3
+=================
+
+What's new in WPE WebKit 2.50.3?
+
+  - Fix pointer event processing no longer working after a mouse right button press.
+  - Fix seeking and looping of media elements that set the "loop" property.
+  - Fix several crashes and rendering issues.
+
+=================
 WPE WebKit 2.50.2
 =================
 
