@@ -1,4 +1,13 @@
 ================
+WebKitGTK 2.50.3
+================
+
+What's new in WebKitGTK 2.50.3?
+
+  - Fix seeking and looping of media elements that set the "loop" property.
+  - Fix several crashes and rendering issues.
+
+================
 WebKitGTK 2.50.2
 ================
 
