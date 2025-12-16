@@ -18,14 +18,14 @@ test(() => {
   const decoder = new TextDecoder();
   const big5Decoder = new TextDecoder("Big5");
 
-  decoder.decode(new Uint8Array([0xF0]), { stream: true });
+  assert_equals(decoder.decode(new Uint8Array([0xF0]), { stream: true }), "");
   assert_equals(decoder.decode(), "\uFFFD");
 
-  decoder.decode(new Uint8Array([0xF0]), { stream: true });
-  decoder.decode(new Uint8Array([0x9F]), { stream: true });
+  assert_equals(decoder.decode(new Uint8Array([0xF0]), { stream: true }), "");
+  assert_equals(decoder.decode(new Uint8Array([0x9F]), { stream: true }), "");
   assert_equals(decoder.decode(), "\uFFFD");
 
-  decoder.decode(new Uint8Array([0xF0, 0x9F]), { stream: true });
+  assert_equals(decoder.decode(new Uint8Array([0xF0, 0x9F]), { stream: true }), "");
   assert_equals(decoder.decode(new Uint8Array([0x92])), "\uFFFD");
 
   assert_equals(decoder.decode(new Uint8Array([0xF0, 0x9F]), { stream: true }), "");
@@ -41,6 +41,24 @@ test(() => {
   assert_equals(decoder.decode(new Uint8Array([0xF0]), { stream: true }), "");
   assert_equals(decoder.decode(new Uint8Array([0x8F]), { stream: true }), "\uFFFD\uFFFD");
   assert_equals(decoder.decode(new Uint8Array([0x92]), { stream: true }), "\uFFFD");
+  assert_equals(decoder.decode(), "");
+
+  assert_equals(decoder.decode(new Uint8Array([0xF0, 0xC2, 0x80, 0x2A]), { stream: true }), "\uFFFD\x80*");
+  assert_equals(decoder.decode(), "");
+
+  assert_equals(decoder.decode(new Uint8Array([0xF0]), { stream: true }), "");
+  assert_equals(decoder.decode(new Uint8Array([0xC2]), { stream: true }), "\uFFFD");
+  assert_equals(decoder.decode(new Uint8Array([0x80]), { stream: true }), "\x80");
+  assert_equals(decoder.decode(new Uint8Array([0x2A]), { stream: true }), "*");
+  assert_equals(decoder.decode(), "");
+
+  assert_equals(decoder.decode(new Uint8Array([0xF0]), { stream: true }), "");
+  assert_equals(decoder.decode(new Uint8Array([0xC2]), { stream: true }), "\uFFFD");
+  assert_equals(decoder.decode(new Uint8Array([0x80, 0x2A]), { stream: true }), "\x80*");
+  assert_equals(decoder.decode(), "");
+
+  assert_equals(decoder.decode(new Uint8Array([0xF0]), { stream: true }), "");
+  assert_equals(decoder.decode(new Uint8Array([0xC2, 0x80, 0x2A]), { stream: true }), "\uFFFD\x80*");
   assert_equals(decoder.decode(), "");
 
   assert_equals(big5Decoder.decode(new Uint8Array([0x81, 0x40]), { stream: true }), "\uFFFD@");
